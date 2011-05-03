@@ -15,6 +15,7 @@ share.
 Newt can make this easier.
 
 Here's what you do:
+
  - make a copy of your config file somewhere so you don't break the one you actually use.
  - replace your user name with the string `<<<username>>>`
  - replace your password with the string `<<<password>>>`
