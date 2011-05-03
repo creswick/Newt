@@ -26,7 +26,7 @@ Now, send your friends the new file with these instructions:
  1. Go install newt!
  2. Save this template to /tmp/myTemplate
  3. run `newt /tmp/myTemplate <destination> username=yourUsername password=yourPassword`
- 4. There you go.  <destination> now has a populated version of the config file.
+ 4. There you go.  `<destination>` now has a populated version of the config file.
 
 I *did* say Newt was trivially simple.
 
