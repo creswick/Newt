@@ -87,3 +87,17 @@ Result (in FooApp.cabal):
 Note that the author needed to be put in quotes to prevent the shell from splitting the `author="Rogan Creswick"` argument to Newt into two arguments.
 
 Also note that we didn't need to define `synopsis` or `description`.  They remain in the file, so you can partially fill a template if you want.
+
+### List the keys
+
+Newt can also tell you which keys you can specify for a given
+template.  If you don't know what the valid keys are, then just run
+newt on the template with out specifying an output file:
+
+    $ newt in.cabal
+    author
+    authoremail
+    description
+    name
+    synopsis
+
