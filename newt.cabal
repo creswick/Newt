@@ -15,6 +15,7 @@ Executable newt
    hs-source-dirs:   src
 
    Build-depends:    base >= 4 && < 6,
+                     containers >= 0.4.0.0 && < 0.5,
                      regex-base >= 0.93.2 && < 0.94,
                      regex-pcre >= 0.94.2 && < 0.95,
                      array >= 0.3.0.0 && < 0.4.1
