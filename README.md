@@ -40,3 +40,50 @@ design for pointing newt at a tarball of templates and having it
 expand the tarball while fleshing out the details.  For now, you get
 to work with one file at a time.
 
+## Examples
+
+### Create a new cabal project!
+
+Input File (`in.cabal`):
+
+    name:                <<<name>>>
+    version:             0.0.0.1
+    synopsis:            <<<synopsis>>>
+    description:         <<<description>>>
+    category:            Tools
+    license:             BSD3
+    License-file:        LICENSE
+    author:              <<<author>>>
+    maintainer:          <<<authoremail>>>
+    Cabal-Version:       >=1.8.0.6
+    build-type:          Simple
+    
+    Executable <<<name>>>
+       Main-Is:          Main.hs
+       hs-source-dirs:   src
+
+Newt command:
+
+    $ newt in.cabal FooApp.cabal name=FooApp author="Rogan Creswick" authoremail=creswick@someemail.com
+
+Result (in FooApp.cabal):
+
+    name:                FooApp
+    version:             0.0.0.1
+    synopsis:            <<<synopsis>>>
+    description:         <<<description>>>
+    category:            Tools
+    license:             BSD3
+    License-file:        LICENSE
+    author:              Rogan Creswick
+    maintainer:          creswick@someemail.com
+    Cabal-Version:       >=1.8.0.6
+    build-type:          Simple
+    
+    Executable FooApp
+       Main-Is:          Main.hs
+       hs-source-dirs:   src
+
+Note that the author needed to be put in quotes to prevent the shell from splitting the `author="Rogan Creswick"` argument to Newt into two arguments.
+
+Also note that we didn't need to define `synopsis` or `description`.  They remain in the file, so you can partially fill a template if you want.
