@@ -19,10 +19,11 @@ Here's what you do:
  - replace your user name with the string `<<<username>>>`
  - replace your password with the string `<<<password>>>`
  - Send your friends the new file with these instructions:
-   1. Go install newt!
-   2. Save this template to /tmp/myTemplate
-   3. run `newt /tmp/myTemplate <destination> username=yourUsername password=yourPassword`
-   4. There you go.  <destination> now has a populated version of the config file.
+
+ 1. Go install newt!
+ 2. Save this template to /tmp/myTemplate
+ 3. run `newt /tmp/myTemplate <destination> username=yourUsername password=yourPassword`
+ 4. There you go.  <destination> now has a populated version of the config file.
 
 I *did* say Newt was trivially simple.
 
