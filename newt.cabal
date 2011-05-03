@@ -1,6 +1,6 @@
 -- cabal configure --prefix=$HOME --user
 -- cabal build
-name:                new
+name:                newt
 version:             0.0.0.1
 synopsis:            A trivially simple app to create things from simple templates.
 description:         Instantiates text things from templates.
@@ -12,7 +12,7 @@ maintainer:          creswick@gmail.com
 Cabal-Version:       >=1.8.0.6
 build-type:          Simple
 
-Executable new
+Executable newt
    Main-Is:          Main.hs
    hs-source-dirs:   src
 
