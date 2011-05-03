@@ -4,13 +4,14 @@ Newt is a trivially simple template instantianion tool.  WTF is a
 template instatiotion tool? It turns files with named fields into
 files without named fields!
 
-Say you just spent twelve hours Yak-shaving to get a configuration
-file tweaked *just* right, and your friends want to use it.  However,
-the configuration file has your user name and password in it, so you
-can't just share the file with them.  At the very least, you have to
-replace those values, then tell your friends where to put *their*
-values, and *hopefully* those only occurr once in the file you need to
-share.
+Say you just spent twelve hours
+[Yak-shaving](http://projects.csail.mit.edu/gsb/old-archive/gsb-archive/gsb2000-02-11.html)
+to get a configuration file tweaked *just* right, and your friends
+want to use it.  However, the configuration file has your user name
+and password in it, so you can't just share the file with them.  At
+the very least, you have to replace those values, then tell your
+friends where to put *their* values, and *hopefully* those only occurr
+once in the file you need to share.
 
 Newt can make this easier.
 
