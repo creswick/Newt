@@ -19,7 +19,8 @@ Here's what you do:
  - make a copy of your config file somewhere so you don't break the one you actually use.
  - replace your user name with the string `<<<username>>>`
  - replace your password with the string `<<<password>>>`
- - Send your friends the new file with these instructions:
+
+Now, send your friends the new file with these instructions:
 
  1. Go install newt!
  2. Save this template to /tmp/myTemplate
