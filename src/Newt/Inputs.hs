@@ -4,14 +4,14 @@ import System.Directory ( doesDirectoryExist, doesFileExist )
 
 import Control.Monad.Error ( ErrorT, throwError, liftIO )
 
-data InputKind = TxtFile FilePath
+data InputSpec = TxtFile FilePath
                | Directory FilePath
                  -- | TarGz FilePath
                  -- | Zip FilePath
                  deriving (Show)
 
-inputKind :: FilePath -> ErrorT String IO InputKind
-inputKind pth = do dirExists  <- liftIO $ doesDirectoryExist pth
+inputSpec :: FilePath -> ErrorT String IO InputSpec
+inputSpec pth = do dirExists  <- liftIO $ doesDirectoryExist pth
                    fileExists <- liftIO $ doesFileExist pth
                    case dirExists of
                      True  -> return (Directory pth)

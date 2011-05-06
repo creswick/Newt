@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Monad.Error (runErrorT)
 import Data.List  ( partition, elemIndex )
 import Data.Maybe ( mapMaybe )
 import qualified Data.Set as Set
@@ -8,6 +9,7 @@ import System.Environment ( getArgs )
 
 
 import Newt.Newt
+import Newt.Inputs
 
 main :: IO ()
 main = do args <- getArgs
@@ -17,13 +19,20 @@ main = do args <- getArgs
               replacement input output = replaceFile simpleTag table input output
 
           case (length files) of
-            2 -> replacement (head files) (files!!1)
-            1 -> printTags simpleTag (head files)
+            2 -> do eInSpec <- runErrorT (inputSpec $ head files)
+                    case eInSpec of
+                      Left err     -> putStrLn err
+                      Right inSpec -> replacement inSpec (files!!1)
+            1 -> do eInSpec <- runErrorT (inputSpec $ head files)
+                    case eInSpec of
+                      Left err     -> putStrLn err
+                      Right inSpec -> printTags simpleTag inSpec
             _ -> printHelp
 
-printTags :: Tag a => a -> FilePath -> IO ()
-printTags tag file = do tagSet <- getTags tag file
-                        mapM_ putStrLn $ Set.toList tagSet
+printTags :: Tag a => a -> InputSpec -> IO ()
+printTags tag (TxtFile file) = do tagSet <- getTags tag file
+                                  mapM_ putStrLn $ Set.toList tagSet
+printTags _ _ = putStrLn "unsupported input format"
 
 printHelp :: IO ()
 printHelp = putStrLn "Usage: newt <inFile> [<outFile> [key=value]]"

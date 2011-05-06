@@ -9,6 +9,7 @@ import Text.Regex.PCRE.String ( compile, compUngreedy, execBlank,
                                 MatchOffset )
 import Text.Regex.Base.RegexLike ( matchAllText )
 
+import Newt.Inputs
 
 class Tag a where
     tagRegex :: a -> Regex
@@ -34,10 +35,12 @@ getTags tag file = do content <- readFile file
                           toStr (s, _) = (stripTag tag) s
                       return $ Set.fromList $ map toStr matches
 
-replaceFile :: Tag a => a -> [(String, String)] -> FilePath -> FilePath -> IO ()
-replaceFile tag table inFile outFile = do content <- readFile inFile
-                                          let result = populate tag table content
-                                          writeFile outFile result
+replaceFile :: Tag a => a -> [(String, String)] -> InputSpec -> FilePath -> IO ()
+replaceFile tag table (TxtFile inFile) outFile = do content <- readFile inFile
+                                                    let result = populate tag table content
+                                                    writeFile outFile result
+replaceFile tag table (Directory inDir) outDir = undefined
+replaceFile _ _ _ _ = putStrLn "Unsupported input source"
 
 populate :: Tag a => a -> [(String, String)] -> String -> String
 populate tag table template = regexReplace (tagRegex tag) replaceFn template
