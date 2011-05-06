@@ -10,15 +10,33 @@ maintainer:          creswick@gmail.com
 Cabal-Version:       >=1.8.0.6
 build-type:          Simple
 
+Library
+   hs-source-dirs:   src
+   Exposed-modules:  Newt.Newt,
+                     Newt.Inputs
+
+   Build-depends:    base       >= 4       && < 6,
+                     containers >= 0.4.0.0 && < 0.5,
+                     directory  >= 1.1.0.0 && < 1.1.1,
+                     mtl        >= 2.0.1.0 && < 2.0.2.0,
+                     regex-base >= 0.93.2  && < 0.94,
+                     regex-pcre >= 0.94.2  && < 0.95,
+                     array      >= 0.3.0.0 && < 0.4.1
+
+   ghc-options:      -Wall
+
+
 Executable newt
    Main-Is:          Main.hs
    hs-source-dirs:   src
 
-   Build-depends:    base >= 4 && < 6,
+   Build-depends:    base       >= 4       && < 6,
                      containers >= 0.4.0.0 && < 0.5,
-                     regex-base >= 0.93.2 && < 0.94,
-                     regex-pcre >= 0.94.2 && < 0.95,
-                     array >= 0.3.0.0 && < 0.4.1
+                     directory  >= 1.1.0.0 && < 1.1.1,
+                     mtl        >= 2.0.1.0 && < 2.0.2.0,
+                     regex-base >= 0.93.2  && < 0.94,
+                     regex-pcre >= 0.94.2  && < 0.95,
+                     array      >= 0.3.0.0 && < 0.4.1
 
    ghc-options:      -Wall
 
