@@ -1,6 +1,6 @@
 module Main where
 
-import Data.List  ( partition )
+import Data.List  ( partition, elemIndex )
 import Data.Maybe ( mapMaybe )
 import qualified Data.Set as Set
 
@@ -11,6 +11,7 @@ import Newt.Newt
 
 main :: IO ()
 main = do args <- getArgs
+          simpleTag <- mkSimpleTag "<<<" ">>>"
           let (rawPairs, files) = partition isPair args
               table             = mapMaybe strToPair rawPairs
               replacement input output = replaceFile simpleTag table input output
@@ -26,3 +27,11 @@ printTags tag file = do tagSet <- getTags tag file
 
 printHelp :: IO ()
 printHelp = putStrLn "Usage: newt <inFile> [<outFile> [key=value]]"
+
+isPair :: String -> Bool
+isPair str = '=' `elem` str
+
+strToPair :: String -> Maybe (String, String)
+strToPair str = do idx <- elemIndex '=' str
+                   let (key, rawValue) = splitAt idx str
+                   return (key, tail rawValue)

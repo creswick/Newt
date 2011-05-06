@@ -1,6 +1,5 @@
 module Newt.Newt where
 
-import Data.List  ( elemIndex )
 import Data.Array ( elems )
 import Data.Set   ( Set )
 import qualified Data.Set as Set
@@ -12,56 +11,49 @@ import Text.Regex.Base.RegexLike ( matchAllText )
 
 
 class Tag a where
-    tagRegex :: a -> IO Regex
+    tagRegex :: a -> Regex
     stripTag :: a -> (String -> String)
 
-data TagSyntax = TagSyntax { start :: String
-                           , end :: String
-                           } deriving (Read, Show)
+data TagSyntax = TagSyntax { tagStart :: String
+                           , tagEnd :: String
+                           , builtRegex :: Regex
+                           }
 
 instance Tag TagSyntax where
-    tagRegex (TagSyntax s e) = mkRegex s e
-    stripTag (TagSyntax s e) str = reverse $ drop (length e) $ reverse $ drop (length s) str
+    tagRegex              tag      = builtRegex tag
+    stripTag (TagSyntax s e _) str = reverse $ drop (length e) $ reverse $ drop (length s) str
 
-simpleTag :: TagSyntax
-simpleTag = TagSyntax "<<<" ">>>"
-
+mkSimpleTag :: String -> String -> IO TagSyntax
+mkSimpleTag front back = do regex <- mkRegex front back
+                            return $ TagSyntax front back regex
 
 getTags :: Tag a => a -> FilePath -> IO (Set String)
 getTags tag file = do content <- readFile file
-                      regexp  <- tagRegex tag
-                      let matches = map (head . elems) (matchAllText regexp content)
+                      let regexp = tagRegex tag
+                          matches = map (head . elems) (matchAllText regexp content)
                           toStr (s, _) = (stripTag tag) s
                       return $ Set.fromList $ map toStr matches
+
+replaceFile :: Tag a => a -> [(String, String)] -> FilePath -> FilePath -> IO ()
+replaceFile tag table inFile outFile = do content <- readFile inFile
+                                          let result = populate tag table content
+                                          writeFile outFile result
+
+populate :: Tag a => a -> [(String, String)] -> String -> String
+populate tag table template = regexReplace (tagRegex tag) replaceFn template
+    where stripTags     = stripTag tag
+          replaceFn str = case lookup (stripTags str) table of
+                            Nothing -> str
+                            Just s  -> s
+
+makeRegex :: String -> IO (Either (MatchOffset, String) Regex)
+makeRegex str = compile compUngreedy execBlank str
 
 mkRegex :: String -> String -> IO Regex
 mkRegex front back = do res <- makeRegex (front++".+"++back)
                         case res of
                           Left ( _ , err) -> error err
                           Right regex     -> return regex
-
-isPair :: String -> Bool
-isPair str = '=' `elem` str
-
-strToPair :: String -> Maybe (String, String)
-strToPair str = do idx <- elemIndex '=' str
-                   let (key, rawValue) = splitAt idx str
-                   return (key, tail rawValue)
-
-replaceFile :: Tag a => a -> [(String, String)] -> FilePath -> FilePath -> IO ()
-replaceFile tag table inFile outFile = do regex <- tagRegex tag
-                                          content <- readFile inFile
-                                          let result = regexReplace regex replaceFn content
-
-                                          writeFile outFile result
-    where stripTags = stripTag tag
-          replaceFn str = case lookup (stripTags str) table of
-                            Nothing -> str
-                            Just s  -> s
-
-
-makeRegex :: String -> IO (Either (MatchOffset, String) Regex)
-makeRegex str = compile compUngreedy execBlank str
 
 regexReplace :: Regex -> (String -> String) -> String -> String
 regexReplace regexp fn input =
