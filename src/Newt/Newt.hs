@@ -38,9 +38,18 @@ getTagsFile :: Tag a => a -> FilePath -> IO (Set String)
 getTagsFile tag file = do content <- readFile file
                           return $ getTags tag content
 
+-- filesIn :: FilePath -> IO [FilePath]
+-- filesIn dir = findWithHandler onErr always always dir
+--  where onErr :: FilePath -> IOException -> IO [FilePath]
+--        onErr file e = do
+--          putStrLn ("Error folding over files on: "++file++"\n error:"++show e)
+--          return [file]
+
+
 -- | Collect the key names for every tag in the contents of the
--- specified directory.  This does *not* look at the directory name
--- itsself.
+-- specified directory.  This does currently return tags in the
+-- directory name itself.  That could be confusing, but I think it's a
+-- corner case.
 --
 -- XXX: Does not check to see if dir is actually a directory.
 getTagsDirectory :: Tag a => a -> FilePath -> IO (Set String)
