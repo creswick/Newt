@@ -14,6 +14,7 @@ Library
    hs-source-dirs:   src
    Exposed-modules:  Newt.Newt,
                      Newt.Inputs,
+                     Newt.Outputs,
                      Newt.Utilities
 
    Build-depends:    base       >= 4       && < 6,

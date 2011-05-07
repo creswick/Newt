@@ -20,4 +20,3 @@ inputSpec (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist pth
                             False -> case fileExists of
                                        True  -> return (TxtFile pth)
                                        False -> throwError (pth++" Does not exist!")
-
