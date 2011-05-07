@@ -5,6 +5,7 @@ import Data.Array ( elems )
 import Data.Foldable ( foldrM )
 import Data.Set   ( Set )
 import qualified Data.Set as Set
+import Data.Maybe ( fromMaybe )
 
 import Text.Regex.PCRE ( Regex )
 import Text.Regex.PCRE.String ( compile, compUngreedy, execBlank,
@@ -85,22 +86,30 @@ getTags tag content = let regexp       = tagRegex tag
                           toStr (s, _) = (stripTag tag) s
                       in  Set.fromList $ map toStr matches
 
-replaceFile :: Tag a => a -> [(String, String)] -> InputSpec -> OutputSpec -> IO ()
-replaceFile tag table StandardIn          outSpec = do content <- hGetContents stdin
-                                                       let result = populate tag table content
-                                                       writeTo outSpec result
-replaceFile tag table (In.TxtFile inFile) outSpec = do content <- readFile inFile
-                                                       let result = populate tag table content
-                                                       writeTo outSpec result
-replaceFile tag table (In.Directory inDir) (Out.Directory outDir) = undefined
+-- |Compute a replacement for a token
+type Replace = String -> Maybe String
+
+-- |A table of replacements
+type Table = [(String, String)]
+
+-- |Compute a template replacement by looking up in a table
+replaceTable :: Table -> Replace
+replaceTable t = \k -> lookup k t
+
+replaceFile :: Tag a => a -> Replace -> InputSpec -> OutputSpec -> IO ()
+replaceFile tag replace StandardIn          outSpec = do content <- hGetContents stdin
+                                                         let result = populate tag replace content
+                                                         writeTo outSpec result
+replaceFile tag replace (In.TxtFile inFile) outSpec = do content <- readFile inFile
+                                                         let result = populate tag replace content
+                                                         writeTo outSpec result
+replaceFile tag replace (In.Directory inDir) (Out.Directory outDir) = undefined
 replaceFile _ _ _ _ = putStrLn "Unsupported input/output pairing"
 
-populate :: Tag a => a -> [(String, String)] -> String -> String
-populate tag table template = regexReplace (tagRegex tag) replaceFn template
+populate :: Tag a => a -> Replace -> String -> String
+populate tag replace template = regexReplace (tagRegex tag) replaceFn template
     where stripTags     = stripTag tag
-          replaceFn str = case lookup (stripTags str) table of
-                            Nothing -> str
-                            Just s  -> s
+          replaceFn str = fromMaybe str $ replace $ stripTags str
 
 makeRegex :: String -> IO (Either (MatchOffset, String) Regex)
 makeRegex str = compile compUngreedy execBlank str
