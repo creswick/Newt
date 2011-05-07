@@ -13,7 +13,8 @@ build-type:          Simple
 Library
    hs-source-dirs:   src
    Exposed-modules:  Newt.Newt,
-                     Newt.Inputs
+                     Newt.Inputs,
+                     Newt.Utilities
 
    Build-depends:    base       >= 4       && < 6,
                      containers >= 0.4.0.0 && < 0.5,
