@@ -58,10 +58,10 @@ main = do conf <- cmdArgs config
 
           res <- runErrorT $ do
                    inSpec <- inputSpec $ source conf
-                   outSpec <- outputSpec inSpec $ dest conf
                    if (list conf)
                       then liftIO $ printTags simpleTag inSpec
-                      else liftIO $ replacement inSpec outSpec
+                      else do outSpec <- outputSpec inSpec $ dest conf
+                              liftIO $ replacement inSpec outSpec
           case res of
             Left err -> do putStrLn err
                            exitWith (ExitFailure 1)
