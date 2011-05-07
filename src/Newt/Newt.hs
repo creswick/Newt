@@ -15,6 +15,9 @@ import System.FilePath.Find ( findWithHandler, always )
 import System.IO ( hGetContents, stdin )
 
 import Newt.Inputs
+import qualified Newt.Inputs as In
+import Newt.Outputs
+import qualified Newt.Outputs as Out
 
 
 class Tag a where
@@ -82,16 +85,15 @@ getTags tag content = let regexp       = tagRegex tag
                           toStr (s, _) = (stripTag tag) s
                       in  Set.fromList $ map toStr matches
 
-
-replaceFile :: Tag a => a -> [(String, String)] -> InputSpec -> FilePath -> IO ()
-replaceFile tag table StandardIn       outFile = do content <- hGetContents stdin
-                                                    let result = populate tag table content
-                                                    writeFile outFile result
-replaceFile tag table (TxtFile inFile) outFile = do content <- readFile inFile
-                                                    let result = populate tag table content
-                                                    writeFile outFile result
-replaceFile tag table (Directory inDir) outDir = undefined
-replaceFile _ _ _ _ = putStrLn "Unsupported input source"
+replaceFile :: Tag a => a -> [(String, String)] -> InputSpec -> OutputSpec -> IO ()
+replaceFile tag table StandardIn          outSpec = do content <- hGetContents stdin
+                                                       let result = populate tag table content
+                                                       writeTo outSpec result
+replaceFile tag table (In.TxtFile inFile) outSpec = do content <- readFile inFile
+                                                       let result = populate tag table content
+                                                       writeTo outSpec result
+replaceFile tag table (In.Directory inDir) (Out.Directory outDir) = undefined
+replaceFile _ _ _ _ = putStrLn "Unsupported input/output pairing"
 
 populate :: Tag a => a -> [(String, String)] -> String -> String
 populate tag table template = regexReplace (tagRegex tag) replaceFn template

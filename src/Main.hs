@@ -15,6 +15,9 @@ import Paths_newt ( version )
 
 import Newt.Newt
 import Newt.Inputs
+import qualified Newt.Inputs as In
+import Newt.Outputs
+import qualified Newt.Outputs as Out
 
 data Config = Config { source    :: Maybe FilePath
                      , dest      :: Maybe FilePath
@@ -55,10 +58,12 @@ main = do conf <- cmdArgs config
           eInSpec <- runErrorT $ inputSpec $ source conf
           case eInSpec of
             Left err     -> putStrLn err
-            Right inSpec -> do maybe (outputError conf)
-                                     (\o -> replacement inSpec o)
-                                     (dest conf)
-                               when (list conf) $ printTags simpleTag inSpec
+            Right inSpec -> do case (list conf) of
+                                 True -> printTags simpleTag inSpec
+                                 False -> do eOutSpec <- runErrorT $ outputSpec inSpec $ dest conf
+                                             case eOutSpec of
+                                               Left err -> putStrLn err
+                                               Right outSpec -> do replacement inSpec outSpec
 
 outputError :: Config -> IO ()
 outputError conf = when (not $ list conf) (putStrLn "Stream output is not yet supported.")
@@ -68,12 +73,12 @@ tagBrackets conf = ( fromMaybe "<<<" $ prefix conf,
                      fromMaybe ">>>" $ prefix conf)
 
 printTags :: Tag a => a -> InputSpec -> IO ()
-printTags tag StandardIn      = do content <- hGetContents stdin
-                                   mapM_ putStrLn $ Set.toList $ getTags tag content
-printTags tag (TxtFile file)  = do tagSet <- getTagsFile tag file
-                                   mapM_ putStrLn $ Set.toList tagSet
-printTags tag (Directory pth) = do tagSet <- getTagsDirectory tag pth
-                                   mapM_ putStrLn $ Set.toList tagSet
+printTags tag StandardIn         = do content <- hGetContents stdin
+                                      mapM_ putStrLn $ Set.toList $ getTags tag content
+printTags tag (In.TxtFile file)  = do tagSet <- getTagsFile tag file
+                                      mapM_ putStrLn $ Set.toList tagSet
+printTags tag (In.Directory pth) = do tagSet <- getTagsDirectory tag pth
+                                      mapM_ putStrLn $ Set.toList tagSet
 printTags _ fmt = putStrLn ("Unsupported input format: " ++ show fmt)
 
 
