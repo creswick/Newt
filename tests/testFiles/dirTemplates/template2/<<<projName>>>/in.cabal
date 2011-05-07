@@ -1,0 +1,15 @@
+name:                <<<projName>>>
+version:             0.0.0.1
+synopsis:            <<<synopsis>>>
+description:         <<<description>>>
+category:            Tools
+license:             BSD3
+License-file:        LICENSE
+author:              <<<author>>>
+maintainer:          <<<authoremail>>>
+Cabal-Version:       >=1.8.0.6
+build-type:          Simple
+
+Executable <<<projName>>>
+   Main-Is:          Main.hs
+   hs-source-dirs:   src

@@ -7,7 +7,6 @@ import qualified Data.Set as Set
 
 import System.Environment ( getArgs )
 
-
 import Newt.Newt
 import Newt.Inputs
 
@@ -30,9 +29,12 @@ main = do args <- getArgs
             _ -> printHelp
 
 printTags :: Tag a => a -> InputSpec -> IO ()
-printTags tag (TxtFile file) = do tagSet <- getTags tag file
-                                  mapM_ putStrLn $ Set.toList tagSet
+printTags tag (TxtFile file)  = do tagSet <- getTagsFile tag file
+                                   mapM_ putStrLn $ Set.toList tagSet
+printTags tag (Directory pth) = do tagSet <- getTagsDirectory tag pth
+                                   mapM_ putStrLn $ Set.toList tagSet
 printTags _ _ = putStrLn "unsupported input format"
+
 
 printHelp :: IO ()
 printHelp = putStrLn "Usage: newt <inFile> [<outFile> [key=value]]"

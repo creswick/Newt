@@ -1,6 +1,8 @@
 module Newt.Newt where
 
+import Control.Exception.Base ( IOException )
 import Data.Array ( elems )
+import Data.Foldable ( foldrM )
 import Data.Set   ( Set )
 import qualified Data.Set as Set
 
@@ -8,8 +10,12 @@ import Text.Regex.PCRE ( Regex )
 import Text.Regex.PCRE.String ( compile, compUngreedy, execBlank,
                                 MatchOffset )
 import Text.Regex.Base.RegexLike ( matchAllText )
+import System.Directory ( doesDirectoryExist )
+import System.FilePath.Find ( findWithHandler, always )
+
 
 import Newt.Inputs
+
 
 class Tag a where
     tagRegex :: a -> Regex
@@ -28,12 +34,45 @@ mkSimpleTag :: String -> String -> IO TagSyntax
 mkSimpleTag front back = do regex <- mkRegex front back
                             return $ TagSyntax front back regex
 
-getTags :: Tag a => a -> FilePath -> IO (Set String)
-getTags tag file = do content <- readFile file
-                      let regexp = tagRegex tag
-                          matches = map (head . elems) (matchAllText regexp content)
+getTagsFile :: Tag a => a -> FilePath -> IO (Set String)
+getTagsFile tag file = do content <- readFile file
+                          return $ getTags tag content
+
+-- | Collect the key names for every tag in the contents of the
+-- specified directory.  This does *not* look at the directory name
+-- itsself.
+--
+-- XXX: Does not check to see if dir is actually a directory.
+getTagsDirectory :: Tag a => a -> FilePath -> IO (Set String)
+getTagsDirectory tag dir = do fileList <- findWithHandler onErr always always dir
+                              foldrM acc Set.empty fileList
+
+--foldrM :: (Foldable t, Monad m) => (a -> b -> m b) -> b -> t a -> m b
+
+ where onErr :: FilePath -> IOException -> IO [FilePath]
+       onErr file e = do
+         putStrLn ("Error folding over files on: "++file++"\n error:"++show e)
+         return [file]
+
+       acc :: FilePath -> Set String -> IO (Set String)
+       acc file set = do cTags <- contentTags file
+                         return $ Set.unions [ set
+                                             , getTags tag file -- get the tags from the file name.
+                                             , cTags -- the content tags.
+                                             ]
+
+       contentTags :: FilePath -> IO (Set String)
+       contentTags file = do dirExists <- doesDirectoryExist file
+                             case dirExists of
+                               True  -> return $ Set.empty -- the recursive case is covered by findWithHandler.
+                               False -> getTagsFile tag file
+
+getTags :: Tag a => a -> String -> Set String
+getTags tag content = let regexp       = tagRegex tag
+                          matches      = map (head . elems) (matchAllText regexp content)
                           toStr (s, _) = (stripTag tag) s
-                      return $ Set.fromList $ map toStr matches
+                      in  Set.fromList $ map toStr matches
+
 
 replaceFile :: Tag a => a -> [(String, String)] -> InputSpec -> FilePath -> IO ()
 replaceFile tag table (TxtFile inFile) outFile = do content <- readFile inFile
