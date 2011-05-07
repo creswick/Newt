@@ -36,6 +36,14 @@ instance Tag TagSyntax where
     tagRegex              tag      = builtRegex tag
     stripTag (TagSyntax s e _) str = reverse $ drop (length e) $ reverse $ drop (length s) str
 
+-- | The default tag prefix.
+defaultPrefix :: String
+defaultPrefix = "<<<"
+
+-- | The default tag suffix.
+defaultSuffix :: String
+defaultSuffix = ">>>"
+
 -- | Create a simple 'tag', the pair of syntactic markers that
 -- indicate where in a body of text to stick a value.  For example,
 -- the defaults tag is created with:

@@ -72,8 +72,8 @@ outputError :: Config -> IO ()
 outputError conf = when (not $ list conf) (putStrLn "Stream output is not yet supported.")
 
 tagBrackets :: Config -> (String, String)
-tagBrackets conf = ( fromMaybe "<<<" $ prefix conf,
-                     fromMaybe ">>>" $ prefix conf)
+tagBrackets conf = ( fromMaybe defaultPrefix $ prefix conf,
+                     fromMaybe defaultSuffix $ prefix conf)
 
 printTags :: Tag a => a -> InputSpec -> IO ()
 printTags tag StandardIn         = do content <- hGetContents stdin
