@@ -25,7 +25,7 @@ Now, send your friends the new file with these instructions:
 
  1. Go install newt!
  2. Save this template to /tmp/myTemplate
- 3. run `newt /tmp/myTemplate <destination> username=yourUsername password=yourPassword`
+ 3. run `newt --source=/tmp/myTemplate --dest=<destination> username=yourUsername password=yourPassword`
  4. There you go.  `<destination>` now has a populated version of the config file.
 
 I *did* say Newt was trivially simple.
@@ -65,7 +65,7 @@ Input File (`in.cabal`):
 
 Newt command:
 
-    $ newt in.cabal FooApp.cabal name=FooApp author="Rogan Creswick" authoremail=creswick@someemail.com
+    $ newt --source=in.cabal --dest=FooApp.cabal name=FooApp author="Rogan Creswick" authoremail=creswick@someemail.com
 
 Result (in FooApp.cabal):
 
@@ -93,9 +93,9 @@ Also note that we didn't need to define `synopsis` or `description`.  They remai
 
 Newt can also tell you which keys you can specify for a given
 template.  If you don't know what the valid keys are, then just run
-newt on the template with out specifying an output file:
+newt with `--list`:
 
-    $ newt in.cabal
+    $ newt --source=in.cabal --list
     author
     authoremail
     description
