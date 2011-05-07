@@ -28,10 +28,10 @@ data Config = Config { source    :: Maybe FilePath
                      } deriving (Show, Data, Typeable)
 
 config :: Config
-config = Config { source = def &= help "Template source location" &= name "s"
-                , dest   = def &= help "Destination location"
-                , rawTable  = def &= args --  &= help "The list of \"key=value\" pairs to use."
-                , list   = def &= help "List the set of keys in the input template."
+config = Config { source = def &= name "s" &= help "Template source location.  Default is to read from stdin."
+                , dest   = def &= help "Destination location.  Default is to write to stdout, but not all inputs can be written to stdout."
+                , rawTable  = def &= args -- the raw key=value pairs
+                , list   = def &= help "List the set of keys in the input template. This is mutually exclusive with output to stdout."
                 , prefix = def &= help "Specify a custom prefix for the tagged keys" &= groupname customTags &=
                            explicit &= name "prefix" &= typ "\"<<<\""
                 , suffix = def &= help "Specify a custom suffix for the tagged keys" &= groupname customTags&=
