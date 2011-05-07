@@ -9,6 +9,7 @@ import Data.Version ( showVersion )
 import qualified Data.Set as Set
 
 import System.Console.CmdArgs.Implicit
+import System.IO ( hGetContents, stdin )
 
 import Paths_newt ( version )
 
@@ -51,15 +52,13 @@ main = do conf <- cmdArgs config
           let table                    = mapMaybe strToPair $ rawTable conf
               replacement input output = replaceFile simpleTag table input output
 
-          case source conf of
-            Nothing -> putStrLn "Stream input is not yet supported."
-            Just i  -> do eInSpec <- runErrorT $ inputSpec i
-                          case eInSpec of
-                            Left err     -> putStrLn err
-                            Right inSpec -> do maybe (outputError conf)
-                                                     (\o -> replacement inSpec o)
-                                                     (dest conf)
-                                               when (list conf) $ printTags simpleTag inSpec
+          eInSpec <- runErrorT $ inputSpec $ source conf
+          case eInSpec of
+            Left err     -> putStrLn err
+            Right inSpec -> do maybe (outputError conf)
+                                     (\o -> replacement inSpec o)
+                                     (dest conf)
+                               when (list conf) $ printTags simpleTag inSpec
 
 outputError :: Config -> IO ()
 outputError conf = when (not $ list conf) (putStrLn "Stream output is not yet supported.")
@@ -69,11 +68,13 @@ tagBrackets conf = ( fromMaybe "<<<" $ prefix conf,
                      fromMaybe ">>>" $ prefix conf)
 
 printTags :: Tag a => a -> InputSpec -> IO ()
+printTags tag StandardIn      = do content <- hGetContents stdin
+                                   mapM_ putStrLn $ Set.toList $ getTags tag content
 printTags tag (TxtFile file)  = do tagSet <- getTagsFile tag file
                                    mapM_ putStrLn $ Set.toList tagSet
 printTags tag (Directory pth) = do tagSet <- getTagsDirectory tag pth
                                    mapM_ putStrLn $ Set.toList tagSet
-printTags _ _ = putStrLn "unsupported input format"
+printTags _ fmt = putStrLn ("Unsupported input format: " ++ show fmt)
 
 
 printHelp :: IO ()

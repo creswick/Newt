@@ -12,7 +12,7 @@ import Text.Regex.PCRE.String ( compile, compUngreedy, execBlank,
 import Text.Regex.Base.RegexLike ( matchAllText )
 import System.Directory ( doesDirectoryExist )
 import System.FilePath.Find ( findWithHandler, always )
-
+import System.IO ( hGetContents, stdin )
 
 import Newt.Inputs
 
@@ -84,6 +84,9 @@ getTags tag content = let regexp       = tagRegex tag
 
 
 replaceFile :: Tag a => a -> [(String, String)] -> InputSpec -> FilePath -> IO ()
+replaceFile tag table StandardIn       outFile = do content <- hGetContents stdin
+                                                    let result = populate tag table content
+                                                    writeFile outFile result
 replaceFile tag table (TxtFile inFile) outFile = do content <- readFile inFile
                                                     let result = populate tag table content
                                                     writeFile outFile result
