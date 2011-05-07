@@ -30,9 +30,9 @@ instance Tag TagSyntax where
     tagRegex              tag      = builtRegex tag
     stripTag (TagSyntax s e _) str = reverse $ drop (length e) $ reverse $ drop (length s) str
 
-mkSimpleTag :: String -> String -> IO TagSyntax
-mkSimpleTag front back = do regex <- mkRegex front back
-                            return $ TagSyntax front back regex
+mkSimpleTag :: (String, String) -> IO TagSyntax
+mkSimpleTag (front, back) = do regex <- mkRegex front back
+                               return $ TagSyntax front back regex
 
 getTagsFile :: Tag a => a -> FilePath -> IO (Set String)
 getTagsFile tag file = do content <- readFile file
