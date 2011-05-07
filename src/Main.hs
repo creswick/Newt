@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Main where
 
+import Control.Monad ( when )
 import Control.Monad.Error (runErrorT)
 import Data.List  ( partition, elemIndex )
 import Data.Maybe ( mapMaybe )
@@ -15,15 +16,15 @@ import Paths_newt ( version )
 import Newt.Newt
 import Newt.Inputs
 
-data Config = Config { source :: Maybe FilePath
-                     , dest   :: Maybe FilePath
-                     , table  :: [String]
-                     , list   :: Bool
+data Config = Config { source    :: Maybe FilePath
+                     , dest      :: Maybe FilePath
+                     , rawTable  :: [String]
+                     , list      :: Bool
                      } deriving (Show, Data, Typeable)
 
 config = Config { source = def &= help "Template source location"
                 , dest   = def &= help "Destination location"
-                , table  = def &= args --  &= help "The list of \"key=value\" pairs to use."
+                , rawTable  = def &= args --  &= help "The list of \"key=value\" pairs to use."
                 , list   = def &= help "List the set of keys in the input template."
                 } &= summary versionString
 
@@ -31,23 +32,23 @@ versionString :: String
 versionString = "newt " ++ showVersion version
 
 main :: IO ()
-main = do -- conf <- cmdArgs versionString [config]
-          args <- getArgs
+main = do conf <- cmdArgs config
           simpleTag <- mkSimpleTag "<<<" ">>>"
-          let (rawPairs, files) = partition isPair args
-              table             = mapMaybe strToPair rawPairs
+          let table                    = mapMaybe strToPair $ rawTable conf
               replacement input output = replaceFile simpleTag table input output
 
-          case (length files) of
-            2 -> do eInSpec <- runErrorT (inputSpec $ head files)
-                    case eInSpec of
-                      Left err     -> putStrLn err
-                      Right inSpec -> replacement inSpec (files!!1)
-            1 -> do eInSpec <- runErrorT (inputSpec $ head files)
-                    case eInSpec of
-                      Left err     -> putStrLn err
-                      Right inSpec -> printTags simpleTag inSpec
-            _ -> printHelp
+          case source conf of
+            Nothing -> putStrLn "Stream input is not yet supported."
+            Just i  -> do eInSpec <- runErrorT $ inputSpec i
+                          case eInSpec of
+                            Left err     -> putStrLn err
+                            Right inSpec -> do maybe (outputError conf)
+                                                     (\o -> replacement inSpec o)
+                                                     (dest conf)
+                                               when (list conf) $ printTags simpleTag inSpec
+
+outputError :: Config -> IO ()
+outputError conf = when (not $ list conf) (putStrLn "Stream output is not yet supported.")
 
 printTags :: Tag a => a -> InputSpec -> IO ()
 printTags tag (TxtFile file)  = do tagSet <- getTagsFile tag file
