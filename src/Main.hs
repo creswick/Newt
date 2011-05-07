@@ -2,13 +2,14 @@
 module Main where
 
 import Control.Monad ( when )
-import Control.Monad.Error (runErrorT)
+import Control.Monad.Error (runErrorT, liftIO)
 import Data.List  ( elemIndex )
 import Data.Maybe ( mapMaybe, fromMaybe )
 import Data.Version ( showVersion )
 import qualified Data.Set as Set
 
 import System.Console.CmdArgs.Implicit
+import System.Exit ( exitWith, ExitCode(..) )
 import System.IO ( hGetContents, stdin )
 
 import Paths_newt ( version )
@@ -55,15 +56,16 @@ main = do conf <- cmdArgs config
           let table                    = mapMaybe strToPair $ rawTable conf
               replacement input output = replaceFile simpleTag table input output
 
-          eInSpec <- runErrorT $ inputSpec $ source conf
-          case eInSpec of
-            Left err     -> putStrLn err
-            Right inSpec -> do case (list conf) of
-                                 True -> printTags simpleTag inSpec
-                                 False -> do eOutSpec <- runErrorT $ outputSpec inSpec $ dest conf
-                                             case eOutSpec of
-                                               Left err -> putStrLn err
-                                               Right outSpec -> do replacement inSpec outSpec
+          res <- runErrorT $ do
+                   inSpec <- inputSpec $ source conf
+                   outSpec <- outputSpec inSpec $ dest conf
+                   if (list conf)
+                      then liftIO $ printTags simpleTag inSpec
+                      else liftIO $ replacement inSpec outSpec
+          case res of
+            Left err -> do putStrLn err
+                           exitWith (ExitFailure 1)
+            Right _  -> return ()
 
 outputError :: Config -> IO ()
 outputError conf = when (not $ list conf) (putStrLn "Stream output is not yet supported.")
