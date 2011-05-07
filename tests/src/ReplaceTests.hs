@@ -12,11 +12,10 @@ import Newt.Newt ( populate, Replace, Table, replaceTable, Tag
                  , defaultPrefix, defaultSuffix, mkSimpleTag
                  , getTags)
 
-tests :: IO Test
+tests :: IO [Test]
 tests = do defaultTag <- mkSimpleTag (defaultPrefix, defaultSuffix)
            dashTag <- mkSimpleTag ("---", "---")
-           return $ testGroup "Content replacement tests" [
-                       testGroup "populate" $
+           return $  [ testGroup "populate" $
                                  concat [map (testPopulate defaultTag $ replaceTable replacements)
                                          [ ("Empty string", "", "")
                                          , ("Empty tag", "<<<>>>", "<<<>>>")

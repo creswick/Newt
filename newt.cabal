@@ -71,7 +71,9 @@ Executable test-newt
                      test-framework             >= 0.3.3   && < 0.4,
                      test-framework-quickcheck2 >= 0.2.9   && < 0.3,
                      test-framework-hunit       >= 0.2.6   && < 0.3,
-                     QuickCheck                 >= 2.4.1.1 && < 2.4.2
+                     QuickCheck                 >= 2.4.1.1 && < 2.4.2,
+                     uuid                       >= 1.2.2   && < 1.2.3,
+                     filepath                   >= 1.2.0.0 && < 1.2.1
 
   GHC-Options: -Wall
 
