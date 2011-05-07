@@ -10,6 +10,7 @@ maintainer:          creswick@gmail.com
 Cabal-Version:       >=1.8.0.6
 build-type:          Simple
 
+
 Library
    hs-source-dirs:   src
    Exposed-modules:  Newt.Newt,
@@ -27,6 +28,7 @@ Library
                      regex-pcre >= 0.94.2  && < 0.95,
                      array      >= 0.3.0.0 && < 0.4.1
 
+
    ghc-options:      -Wall
 
 
@@ -36,15 +38,42 @@ Executable newt
 
    Build-depends:    base       >= 4       && < 6,
                      containers >= 0.4.0.0 && < 0.5,
-                     cmdargs    >= 0.6.9   && < 0.6.10,
                      directory  >= 1.1.0.0 && < 1.1.1,
                      filemanip  >= 0.3.5.2 && < 0.3.6,
-                     mtl        >= 2.0.1.0 && < 2.0.2.0,
+                     mtl        >= 2.0.1.0 && < 2.0.2,
+                     process    >= 1.0.1.5 && < 1.0.2,
                      regex-base >= 0.93.2  && < 0.94,
                      regex-pcre >= 0.94.2  && < 0.95,
                      array      >= 0.3.0.0 && < 0.4.1
 
+   Build-depends:    cmdargs    >= 0.6.9   && < 0.6.10,
+                     newt
+
    ghc-options:      -Wall
+
+Executable test-newt
+   Main-is:          Main.hs
+
+   Hs-Source-Dirs:   tests/src,
+                     src
+
+   Build-depends:    base       >= 4       && < 6,
+                     containers >= 0.4.0.0 && < 0.5,
+                     directory  >= 1.1.0.0 && < 1.1.1,
+                     filemanip  >= 0.3.5.2 && < 0.3.6,
+                     mtl        >= 2.0.1.0 && < 2.0.2,
+                     process    >= 1.0.1.5 && < 1.0.2,
+                     regex-base >= 0.93.2  && < 0.94,
+                     regex-pcre >= 0.94.2  && < 0.95,
+                     array      >= 0.3.0.0 && < 0.4.1
+
+  Build-depends:     HUnit >= 1.2.2 && < 1.2.3,
+                     test-framework >= 0.3.3 && < 0.4,
+                     --    test-framework-quickcheck >= 0.2.7 && < 0.3,
+                     test-framework-hunit >= 0.2.6 && < 0.3
+                     --    QuickCheck >= 1.1 && < 2,
+
+  GHC-Options: -Wall
 
 source-repository head
   type:     git
