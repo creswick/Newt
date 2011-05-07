@@ -67,11 +67,11 @@ Executable test-newt
                      regex-pcre >= 0.94.2  && < 0.95,
                      array      >= 0.3.0.0 && < 0.4.1
 
-  Build-depends:     HUnit >= 1.2.2 && < 1.2.3,
-                     test-framework >= 0.3.3 && < 0.4,
-                     --    test-framework-quickcheck >= 0.2.7 && < 0.3,
-                     test-framework-hunit >= 0.2.6 && < 0.3
-                     --    QuickCheck >= 1.1 && < 2,
+  Build-depends:     HUnit                      >= 1.2.2   && < 1.2.3,
+                     test-framework             >= 0.3.3   && < 0.4,
+                     test-framework-quickcheck2 >= 0.2.9   && < 0.3,
+                     test-framework-hunit       >= 0.2.6   && < 0.3,
+                     QuickCheck                 >= 2.4.1.1 && < 2.4.2
 
   GHC-Options: -Wall
 
