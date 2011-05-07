@@ -20,7 +20,9 @@ import qualified Newt.Inputs as In
 import Newt.Outputs
 import qualified Newt.Outputs as Out
 
-
+-- | Tag is an abstraction layer over the ways in which a given @key@
+-- could be located in a file.  Currently, this does require that the
+-- syntax for marking keys is regular.
 class Tag a where
     tagRegex :: a -> Regex
     stripTag :: a -> (String -> String)
@@ -34,10 +36,27 @@ instance Tag TagSyntax where
     tagRegex              tag      = builtRegex tag
     stripTag (TagSyntax s e _) str = reverse $ drop (length e) $ reverse $ drop (length s) str
 
+-- | Create a simple 'tag', the pair of syntactic markers that
+-- indicate where in a body of text to stick a value.  For example,
+-- the defaults tag is created with:
+--
+-- > mkSimpleTag ("<<<", ">>>")
+--
+-- which corresponds to tags of the form:
+--
+-- @<<<key>>>@
 mkSimpleTag :: (String, String) -> IO TagSyntax
 mkSimpleTag (front, back) = do regex <- mkRegex front back
                                return $ TagSyntax front back regex
 
+    where mkRegex :: String -> String -> IO Regex
+          mkRegex front back = do res <- makeRegex (front++".+"++back)
+                                  case res of
+                                    Left ( _ , err) -> error err
+                                    Right regex     -> return regex
+
+
+-- | Retrieves the set of @key@s found in a text file.
 getTagsFile :: Tag a => a -> FilePath -> IO (Set String)
 getTagsFile tag file = do content <- readFile file
                           return $ getTags tag content
@@ -59,9 +78,6 @@ getTagsFile tag file = do content <- readFile file
 getTagsDirectory :: Tag a => a -> FilePath -> IO (Set String)
 getTagsDirectory tag dir = do fileList <- findWithHandler onErr always always dir
                               foldrM acc Set.empty fileList
-
---foldrM :: (Foldable t, Monad m) => (a -> b -> m b) -> b -> t a -> m b
-
  where onErr :: FilePath -> IOException -> IO [FilePath]
        onErr file e = do
          putStrLn ("Error folding over files on: "++file++"\n error:"++show e)
@@ -80,6 +96,7 @@ getTagsDirectory tag dir = do fileList <- findWithHandler onErr always always di
                                True  -> return $ Set.empty -- the recursive case is covered by findWithHandler.
                                False -> getTagsFile tag file
 
+-- | Retrieve the set of @key@s found in a given string.
 getTags :: Tag a => a -> String -> Set String
 getTags tag content = let regexp       = tagRegex tag
                           matches      = map (head . elems) (matchAllText regexp content)
@@ -96,6 +113,14 @@ type Table = [(String, String)]
 replaceTable :: Table -> Replace
 replaceTable t = \k -> lookup k t
 
+-- | Replace all the defined keys in a template, writing the template
+-- out to the specified destination.
+--
+-- `replaceFile` performs IO as necessary to read/write templates and
+-- results.  It is also poorly named: it operates on any input/output
+-- spec.
+--
+-- XXX: return value should probably be @ErrorT String IO ()@
 replaceFile :: Tag a => a -> Replace -> InputSpec -> OutputSpec -> IO ()
 replaceFile tag replace StandardIn          outSpec = do content <- hGetContents stdin
                                                          let result = populate tag replace content
@@ -106,20 +131,20 @@ replaceFile tag replace (In.TxtFile inFile) outSpec = do content <- readFile inF
 replaceFile tag replace (In.Directory inDir) (Out.Directory outDir) = undefined
 replaceFile _ _ _ _ = putStrLn "Unsupported input/output pairing"
 
+-- | Replace all the defined keys in a string, returning the populated string.
 populate :: Tag a => a -> Replace -> String -> String
 populate tag replace template = regexReplace (tagRegex tag) replaceFn template
     where stripTags     = stripTag tag
           replaceFn str = fromMaybe str $ replace $ stripTags str
 
+-- | Helper function for compiling a non-greedy regular expression.
+-- Might be better written as a result of @ErrorT String IO Regex@ to
+-- match the other error types in Newt.
 makeRegex :: String -> IO (Either (MatchOffset, String) Regex)
 makeRegex str = compile compUngreedy execBlank str
 
-mkRegex :: String -> String -> IO Regex
-mkRegex front back = do res <- makeRegex (front++".+"++back)
-                        case res of
-                          Left ( _ , err) -> error err
-                          Right regex     -> return regex
-
+-- | Apply @fn@ to every matched instance of @regexp@ in @input@,
+-- returning the result.
 regexReplace :: Regex -> (String -> String) -> String -> String
 regexReplace regexp fn input =
     -- matches :: [(String, (Int, Int))]
@@ -129,6 +154,8 @@ regexReplace regexp fn input =
          _  -> let (prefix, offset) = foldl (builder input fn) ("", 0) matches
                in prefix ++ (drop offset input)
 
+-- | Helper to assemble the replaced strings with the content between
+-- regular expression matches.
 builder :: String -> (String -> String) -> (String, Int) -> (String, (Int, Int)) -> (String, Int)
 builder input fn (acc, loc) (str, (offset, len))  =
     let filler = take (offset - loc) (drop loc input)
