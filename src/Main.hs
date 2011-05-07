@@ -3,13 +3,12 @@ module Main where
 
 import Control.Monad ( when )
 import Control.Monad.Error (runErrorT)
-import Data.List  ( partition, elemIndex )
+import Data.List  ( elemIndex )
 import Data.Maybe ( mapMaybe )
 import Data.Version ( showVersion )
 import qualified Data.Set as Set
 
 import System.Console.CmdArgs.Implicit
-import System.Environment ( getArgs )
 
 import Paths_newt ( version )
 
@@ -22,15 +21,21 @@ data Config = Config { source    :: Maybe FilePath
                      , list      :: Bool
                      } deriving (Show, Data, Typeable)
 
+config :: Config
 config = Config { source = def &= help "Template source location"
                 , dest   = def &= help "Destination location"
                 , rawTable  = def &= args --  &= help "The list of \"key=value\" pairs to use."
                 , list   = def &= help "List the set of keys in the input template."
-                } &= summary versionString
+                } &= summary versionString &= details detailsHeader &= program "newt"
 
 versionString :: String
 versionString = "newt " ++ showVersion version
 
+detailsHeader :: [String]
+detailsHeader = [ "For example:"
+                , "  $ newt --source=in.cabal --dest=FooApp.cabal name=FooApp author=\"Rogan Creswick\" authoremail=creswick@someemail.com"
+                , ""
+                ]
 main :: IO ()
 main = do conf <- cmdArgs config
           simpleTag <- mkSimpleTag "<<<" ">>>"
