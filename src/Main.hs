@@ -1,17 +1,38 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 module Main where
 
 import Control.Monad.Error (runErrorT)
 import Data.List  ( partition, elemIndex )
 import Data.Maybe ( mapMaybe )
+import Data.Version ( showVersion )
 import qualified Data.Set as Set
 
+import System.Console.CmdArgs.Implicit
 import System.Environment ( getArgs )
+
+import Paths_newt ( version )
 
 import Newt.Newt
 import Newt.Inputs
 
+data Config = Config { source :: Maybe FilePath
+                     , dest   :: Maybe FilePath
+                     , table  :: [String]
+                     , list   :: Bool
+                     } deriving (Show, Data, Typeable)
+
+config = Config { source = def &= help "Template source location"
+                , dest   = def &= help "Destination location"
+                , table  = def &= args --  &= help "The list of \"key=value\" pairs to use."
+                , list   = def &= help "List the set of keys in the input template."
+                } &= summary versionString
+
+versionString :: String
+versionString = "newt " ++ showVersion version
+
 main :: IO ()
-main = do args <- getArgs
+main = do -- conf <- cmdArgs versionString [config]
+          args <- getArgs
           simpleTag <- mkSimpleTag "<<<" ">>>"
           let (rawPairs, files) = partition isPair args
               table             = mapMaybe strToPair rawPairs
