@@ -54,7 +54,8 @@ main :: IO ()
 main = do conf <- cmdArgs config
           simpleTag <- mkSimpleTag $ tagBrackets conf
           let table                    = mapMaybe strToPair $ rawTable conf
-              replacement input output = replaceFile simpleTag table input output
+              replace                  = replaceTable table
+              replacement input output = replaceFile simpleTag replace input output
 
           res <- runErrorT $ do
                    inSpec <- inputSpec $ source conf
