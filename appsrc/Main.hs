@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Main where
 
-import Control.Monad ( when )
 import Control.Monad.Error (runErrorT, liftIO)
 import Data.List  ( elemIndex )
 import Data.Maybe ( mapMaybe, fromMaybe )
@@ -9,6 +8,7 @@ import Data.Version ( showVersion )
 import qualified Data.Set as Set
 
 import System.Console.CmdArgs.Implicit
+import System.Environment ( getArgs, withArgs )
 import System.Exit ( exitWith, ExitCode(..) )
 import System.IO ( hGetContents, stdin )
 
@@ -66,12 +66,24 @@ versionString = "newt " ++ showVersion version
 
 detailsHeader :: [String]
 detailsHeader = [ "For example:"
-                , "  $ newt --source=in.cabal --dest=FooApp.cabal name=FooApp"++
-                  " author=\"Rogan Creswick\" authoremail=creswick@someemail.com"
                 , ""
+                , "  Transform in.cabal according to a set of key=value assignments:"
+                , "  $ newt --source=in.cabal --dest=FooApp.cabal name=FooApp "++
+                  "author=\"Your Name\""
+                , ""
+                , "  List the tagged keys in in.cabal:"
+                , "  $ newt --source=in.cabal --list"
+                , ""
+                , "  List the tagged keys in in.cabal, using cat and stdin:"
+                , "  $ cat in.cabal | newt --list"
                 ]
 main :: IO ()
-main = do conf <- cmdArgs config
+main = do conf <- do args <- getArgs
+                     -- if no arguments were specified, print help and exit:
+                     case args of
+                       [] -> withArgs ["--help"] $ cmdArgs config
+                       _  -> cmdArgs config
+
           simpleTag <- mkSimpleTag $ tagBrackets conf
           let table                    = mapMaybe strToPair $ rawTable conf
               replace                  = replaceTable table
