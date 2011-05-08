@@ -16,17 +16,17 @@ data OutputSpec = StandardOut
                 | Directory FilePath
                 deriving (Show)
 
-outputSpec :: In.InputSpec -> Maybe FilePath -> ErrorT String IO OutputSpec
-outputSpec (In.Directory _)  Nothing = throwError "Can not write directory input to standard output!"
-outputSpec _                 Nothing = return StandardOut -- should check for compatability
-outputSpec input (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist pth
-                                 fileExists <- liftIO $ doesFileExist pth
-                                 when (dirExists || fileExists) (throwError (pth++" exists!"))
-
-                                 case input of
-                                  In.StandardIn  -> return $ TxtFile pth
-                                  In.TxtFile   _ -> return $ TxtFile pth
-                                  In.Directory _ -> return $ Directory pth
+outputSpec :: Bool -> In.InputSpec -> Maybe FilePath -> ErrorT String IO OutputSpec
+outputSpec True   inSpec                 _ = throwError "Inplace modifications are not supported."
+outputSpec False (In.Directory _)  Nothing = throwError "Can not write directory input to standard output!"
+outputSpec False _                 Nothing = return StandardOut -- should check for compatability
+outputSpec False input (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist pth
+                                       fileExists <- liftIO $ doesFileExist pth
+                                       when (dirExists || fileExists) (throwError (pth++" exists!"))
+                                       case input of
+                                         In.StandardIn  -> return $ TxtFile pth
+                                         In.TxtFile   _ -> return $ TxtFile pth
+                                         In.Directory _ -> return $ Directory pth
 
 
 writeTo :: OutputSpec -> String -> IO ()

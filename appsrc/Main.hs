@@ -79,15 +79,12 @@ main = do conf <- cmdArgs config
                    inSpec <- inputSpec $ source conf
                    if (list conf)
                       then liftIO $ printTags simpleTag inSpec
-                      else do outSpec <- outputSpec inSpec $ dest conf
+                      else do outSpec <- outputSpec (inplace conf) inSpec $ dest conf
                               liftIO $ replacement inSpec outSpec
           case res of
             Left err -> do putStrLn err
                            exitWith (ExitFailure 1)
             Right _  -> return ()
-
-outputError :: Config -> IO ()
-outputError conf = when (not $ list conf) (putStrLn "Stream output is not yet supported.")
 
 tagBrackets :: Config -> (String, String)
 tagBrackets conf = ( fromMaybe defaultPrefix $ prefix conf,
