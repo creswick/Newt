@@ -1,6 +1,8 @@
 module Newt.Newt where
 
 import Control.Exception.Base ( IOException )
+import Control.Monad       ( zipWithM )
+import Control.Monad.Error ( ErrorT, runErrorT, liftIO )
 import Data.Array ( elems )
 import Data.Foldable ( foldrM )
 import Data.Set   ( Set )
@@ -11,9 +13,15 @@ import Text.Regex.PCRE ( Regex )
 import Text.Regex.PCRE.String ( compile, compUngreedy, execBlank,
                                 MatchOffset )
 import Text.Regex.Base.RegexLike ( matchAllText )
-import System.Directory ( doesDirectoryExist )
-import System.FilePath.Find ( findWithHandler, always )
+import System.Directory ( doesDirectoryExist, getDirectoryContents
+                        , createDirectoryIfMissing )
+import System.Exit           ( exitWith, ExitCode(..) )
+import System.FilePath       ( (</>) )
+import System.FilePath.Find  ( findWithHandler, always )
+import System.FilePath.Posix ( makeRelative )
 import System.IO ( hGetContents, stdin )
+
+
 
 import Newt.Inputs
 import qualified Newt.Inputs as In
@@ -84,14 +92,9 @@ getTagsFile tag file = do content <- readFile file
 --
 -- XXX: Does not check to see if dir is actually a directory.
 getTagsDirectory :: Tag a => a -> FilePath -> IO (Set String)
-getTagsDirectory tag dir = do fileList <- findWithHandler onErr always always dir
+getTagsDirectory tag dir = do fileList <- findWithHandler onFileIOErr always always dir
                               foldrM acc Set.empty fileList
- where onErr :: FilePath -> IOException -> IO [FilePath]
-       onErr file e = do
-         putStrLn ("Error folding over files on: "++file++"\n error:"++show e)
-         return [file]
-
-       acc :: FilePath -> Set String -> IO (Set String)
+ where acc :: FilePath -> Set String -> IO (Set String)
        acc file set = do cTags <- contentTags file
                          return $ Set.unions [ set
                                              , getTags tag file -- get the tags from the file name.
@@ -103,6 +106,11 @@ getTagsDirectory tag dir = do fileList <- findWithHandler onErr always always di
                              case dirExists of
                                True  -> return $ Set.empty -- the recursive case is covered by findWithHandler.
                                False -> getTagsFile tag file
+
+onFileIOErr :: FilePath -> IOException -> IO [FilePath]
+onFileIOErr file e = do
+  putStrLn ("Error folding over files on: "++file++"\n error:"++show e)
+  return [file]
 
 -- | Retrieve the set of @key@s found in a given string.
 getTags :: Tag a => a -> String -> Set String
@@ -136,7 +144,31 @@ replaceFile tag replace StandardIn          outSpec = do content <- hGetContents
 replaceFile tag replace (In.TxtFile inFile) outSpec = do content <- readFile inFile
                                                          let result = populate tag replace content
                                                          writeTo outSpec result
-replaceFile tag replace (In.Directory inDir) (Out.Directory outDir) = undefined
+replaceFile tag replace (In.Directory inDir) (Out.Directory outDir) = do
+  -- create the incomming dir.  This hapens first so the initial
+  -- invocation doesn't do string replacement on the dir name.
+  createDirectoryIfMissing True outDir
+  -- get all the directory entries:
+  inPaths <- do tempPaths <- getDirectoryContents inDir
+                return $ map (inDir </>) (filter (\x-> (x /= ".") && (x /= "..")) tempPaths)
+
+  let outPaths  = map inToOut inPaths
+      inToOut f = Just (outDir </>  -- prepend the output dir to the paths.
+                          (populate tag replace  -- run substitutions on file names.
+                             (makeRelative inDir f))) -- get the relative locations for the incoming template files/dirs
+
+  res <- runErrorT $ do
+           inList  <- mapM inputSpec (map Just inPaths)
+           outList <- zipWithM (outputSpec False) inList outPaths
+           liftIO $ zipWithM (replaceFile tag replace) inList outList
+  -- TODO replaceFile should return ErrorT String IO (), so this won't be necessary:
+  case res of
+    Left err -> do putStrLn err
+                   exitWith (ExitFailure 1)
+    Right _  -> return ()
+
+
+
 replaceFile _ _ _ _ = putStrLn "Unsupported input/output pairing"
 
 -- | Replace all the defined keys in a string, returning the populated string.
