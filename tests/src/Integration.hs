@@ -16,6 +16,7 @@ import Test.HUnit      ( (@=?), assertEqual, Assertion )
 import Test.Framework.Providers.HUnit
 import Test.Framework ( testGroup, Test )
 
+import Newt.Utilities
 
 tests :: [Test]
 tests = [ testGroup "Simple File tests" [
@@ -54,20 +55,6 @@ assertFilesEqual :: String -> FilePath -> FilePath -> Assertion
 assertFilesEqual msg oracle suspect = do oracleTxt <- readFile oracle
                                          suspectTxt <- readFile suspect
                                          assertEqual msg oracleTxt suspectTxt
-
-cleanup :: [FilePath] -> IO a -> IO a
-cleanup files operation = do
-  finally operation $ do
-    mapM_ rmIfExists files
-
-    where rmIfExists :: FilePath -> IO ()
-          rmIfExists file = catch (removeFile file) (fileFailedHandler file)
-
-          fileFailedHandler :: FilePath -> IOException -> IO ()
-          fileFailedHandler file e = catch (removeDirectory file) dirFailedHandler
-
-          dirFailedHandler :: IOException -> IO ()
-          dirFailedHandler e = return ()
 
 -- | Generates a filename with a uuid in either the system temp
 -- directory or the current directory (if the system temp dir can't be

@@ -1,8 +1,12 @@
 module Newt.Outputs where
 
-import System.Directory    ( doesDirectoryExist, doesFileExist )
+import System.Directory    ( doesDirectoryExist, doesFileExist
+                           , copyFile )
+import System.FilePath  ( (</>) )
+import System.Unix.Directory ( withTemporaryDirectory )
 import Control.Monad       ( when )
 import Control.Monad.Error ( ErrorT, throwError, liftIO )
+
 
 
 import qualified Newt.Inputs as In
@@ -26,6 +30,9 @@ outputSpec input (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist pth
 
 
 writeTo :: OutputSpec -> String -> IO ()
-writeTo (TxtFile outFile) str = writeFile outFile str
+writeTo (TxtFile outFile) str = withTemporaryDirectory "newt-XXXXXX" $ \dir -> do
+                                  let tempOut = dir </> "tempOut"
+                                  writeFile tempOut str
+                                  copyFile  tempOut outFile
 writeTo StandardOut       str = putStr str
 writeTo outSpec             _ = error ("Could not write to outspec: "++show outSpec)
