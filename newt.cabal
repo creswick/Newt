@@ -27,6 +27,11 @@ Extra-source-files:
                      tests/testFiles/simpleTest/in.cabal.oracle.2
                      tests/testFiles/simpleTest/simple1.txt
 
+Flag tests
+   Description:    Build the tests
+   Default:        False
+
+
 Library
    hs-source-dirs:   src
    Exposed-modules:  Newt.Newt,
@@ -77,6 +82,9 @@ Executable newt
    ghc-options:      -Wall
 
 Executable test-newt
+   if !flag(tests)
+      Buildable:              False
+
    Main-is:          Main.hs
 
    Hs-Source-Dirs:   tests/src
