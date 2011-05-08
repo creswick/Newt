@@ -10,6 +10,22 @@ maintainer:          creswick@gmail.com
 Cabal-Version:       >=1.8.0.6
 build-type:          Simple
 
+Extra-source-files:
+                     tests/src/Integration.hs
+                     tests/src/Main.hs
+                     tests/src/ReplaceTests.hs
+                     tests/testFiles/dirTemplates/cabalProject/<<<projName>>>.cabal
+                     tests/testFiles/dirTemplates/cabalProject/LICENSE
+                     tests/testFiles/dirTemplates/cabalProject/Setup.hs
+                     tests/testFiles/dirTemplates/cabalProject/appsrc/Main.hs
+                     tests/testFiles/dirTemplates/cabalProject/src/<<<projName>>>.hs
+                     tests/testFiles/dirTemplates/cabalProject/tests/src/Main.hs
+                     tests/testFiles/dirTemplates/template2/<<<projName>>>/in.cabal
+                     tests/testFiles/simpleTest/alternate1.txt
+                     tests/testFiles/simpleTest/in.cabal
+                     tests/testFiles/simpleTest/in.cabal.oracle.1
+                     tests/testFiles/simpleTest/in.cabal.oracle.2
+                     tests/testFiles/simpleTest/simple1.txt
 
 Library
    hs-source-dirs:   src
@@ -87,7 +103,8 @@ Executable test-newt
                      process    >= 1.0.1.5 && < 1.0.2,
                      filepath   >= 1.2.0.0 && < 1.2.1
 
-
+   Other-modules:    Integration,
+                     ReplaceTests
 
    GHC-Options: -Wall
 
