@@ -50,21 +50,6 @@ test_simpleReplace2 :: Assertion
 test_simpleReplace2 = test_simpleReplace "TheAuthor" "in.cabal.oracle.2"
 
 
--- test_simpleReplace1 :: Assertion
--- test_simpleReplace1 = do tmpFile <- getTmpFileName
---                          let source= "--source=" ++ (testDir </> "simpleTest" </> "in.cabal")
---                              dest  = "--dest="++tmpFile
---                              oracle = (testDir </> "simpleTest" </> "in.cabal.oracle.1")
---                              params = [ "name=myProject"
---                                       , "author=\"The Author\""]
---                          cleanup [tmpFile] $ do
---                            exitCode <- rawSystem newtCmd ([source, dest] ++ params)
---                            assertEqual "invocation of newt failed" ExitSuccess exitCode
---                            -- check file content:
---                            assertFilesEqual "Generated file doesn't match" oracle tmpFile
-
-
-
 assertFilesEqual :: String -> FilePath -> FilePath -> Assertion
 assertFilesEqual msg oracle suspect = do oracleTxt <- readFile oracle
                                          suspectTxt <- readFile suspect
