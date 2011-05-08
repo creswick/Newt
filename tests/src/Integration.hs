@@ -1,7 +1,8 @@
 module Integration where
 
 import Control.Exception.Base (finally, catch, IOException )
-import System.Directory ( removeFile, removeDirectory, getTemporaryDirectory )
+import System.Directory ( removeFile, removeDirectory, getTemporaryDirectory
+                        , copyFile )
 import System.FilePath  ( (</>) )
 import System.Process   ( rawSystem )
 import System.Exit      ( ExitCode(..) )
@@ -20,8 +21,16 @@ import Newt.Utilities
 
 tests :: [Test]
 tests = [ testGroup "Simple File tests" [
-                          testCase "Simple replacement test 1" test_simpleReplace1
-                        , testCase "Simple replacement test 2" test_simpleReplace1
+                          testCase "Simple replacement test 1" $
+                                   test_simpleReplace "The Author" "in.cabal.oracle.1"
+                        , testCase "Simple replacement test 2" $
+                                   test_simpleReplace "TheAuthor" "in.cabal.oracle.2"
+                        ]
+        , testGroup "Inplace modification tests" [
+                          testCase "Inplace replacement test 1" $
+                                   test_inplaceReplace "The Author" "in.cabal.oracle.1"
+                        , testCase "Inplace replacement test 2"  $
+                                   test_inplaceReplace "TheAuthor" "in.cabal.oracle.2"
                         ]
         ]
 
@@ -31,6 +40,22 @@ testDir = "tests" </> "testFiles"
 newtCmd :: FilePath
 newtCmd = "./cabal-dev/bin/newt"
 
+
+test_inplaceReplace :: String -> String -> Assertion
+test_inplaceReplace author oracleFile = do tmpFile <- getTmpFileName
+                                           let input = (testDir </> "simpleTest" </> "in.cabal")
+                                               source= "--source=" ++ tmpFile
+                                               oracle = (testDir </> "simpleTest" </> oracleFile)
+                                               params = [ "--inplace"
+                                                        , "name=myProject"
+                                                        , "author="++author]
+                                           cleanup [tmpFile] $ do
+                                             -- don't modify the original test input file:
+                                             copyFile input tmpFile
+                                             exitCode <- rawSystem newtCmd ([source] ++ params)
+                                             assertEqual "invocation of newt failed" ExitSuccess exitCode
+                                             -- check file content:
+                                             assertFilesEqual "Generated file doesn't match" oracle tmpFile
 
 test_simpleReplace :: String -> String -> Assertion
 test_simpleReplace author oracleFile = do tmpFile <- getTmpFileName
@@ -44,12 +69,6 @@ test_simpleReplace author oracleFile = do tmpFile <- getTmpFileName
                                             assertEqual "invocation of newt failed" ExitSuccess exitCode
                                             -- check file content:
                                             assertFilesEqual "Generated file doesn't match" oracle tmpFile
-test_simpleReplace1 :: Assertion
-test_simpleReplace1 = test_simpleReplace "The Author" "in.cabal.oracle.1"
-
-test_simpleReplace2 :: Assertion
-test_simpleReplace2 = test_simpleReplace "TheAuthor" "in.cabal.oracle.2"
-
 
 assertFilesEqual :: String -> FilePath -> FilePath -> Assertion
 assertFilesEqual msg oracle suspect = do oracleTxt <- readFile oracle
