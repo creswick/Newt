@@ -17,7 +17,7 @@ data OutputSpec = StandardOut
                 deriving (Show)
 
 outputSpec :: Bool -> In.InputSpec -> Maybe FilePath -> ErrorT String IO OutputSpec
-outputSpec True   inSpec                 _ = throwError "Inplace modifications are not supported."
+outputSpec True   inSpec                 _ = fromInputSpec inSpec
 outputSpec False (In.Directory _)  Nothing = throwError "Can not write directory input to standard output!"
 outputSpec False _                 Nothing = return StandardOut -- should check for compatability
 outputSpec False input (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist pth
@@ -28,6 +28,12 @@ outputSpec False input (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist
                                          In.TxtFile   _ -> return $ TxtFile pth
                                          In.Directory _ -> return $ Directory pth
 
+-- | Convert an inputspec into an output spec that represents the same
+-- source.  used for inplace modifications.
+fromInputSpec :: In.InputSpec -> ErrorT String IO OutputSpec
+fromInputSpec (In.TxtFile file)  = return $ TxtFile file
+fromInputSpec (In.Directory dir) = return $ Directory dir
+fromInputSpec In.StandardIn      = throwError "Can not modife stdin inplace."
 
 writeTo :: OutputSpec -> String -> IO ()
 writeTo (TxtFile outFile) str = withTemporaryDirectory "newt-XXXXXX" $ \dir -> do
