@@ -24,19 +24,36 @@ data Config = Config { source    :: Maybe FilePath
                      , dest      :: Maybe FilePath
                      , rawTable  :: [String]
                      , list      :: Bool
+                     , inplace   :: Bool
                      , prefix    :: Maybe String
                      , suffix    :: Maybe String
                      } deriving (Show, Data, Typeable)
 
 config :: Config
-config = Config { source = def &= name "s" &= help "Template source location.  Default is to read from stdin."
-                , dest   = def &= help "Destination location.  Default is to write to stdout, but not all inputs can be written to stdout."
-                , rawTable  = def &= args -- the raw key=value pairs
-                , list   = def &= help "List the set of keys in the input template. This is mutually exclusive with output to stdout."
-                , prefix = def &= help "Specify a custom prefix for the tagged keys" &= groupname customTags &=
-                           explicit &= name "prefix" &= typ "\"<<<\""
-                , suffix = def &= help "Specify a custom suffix for the tagged keys" &= groupname customTags&=
-                           explicit &= name "suffix" &= typ "\">>>\""
+config = Config { source   = def &= name "s"
+                           &= help ("Template source location.  Default is to"++
+                                    " read from stdin.")
+                , dest     = def
+                           &= help ("Destination location.  Default is to"++
+                                    " write to stdout, but not all inputs"++
+                                    "can be written to stdout.")
+                , rawTable = def &= args -- the raw key=value pairs
+                , list     = def
+                           &= help ("List the set of keys in the input"++
+                                    " template. This is mutually exclusive"++
+                                    " with output to stdout.")
+                , inplace  = def
+                           &= help ("Populate the source template in-place,"++
+                                    " making destructive changes. This is"++
+                                    " mutually exclusive with output to stdout.")
+                , prefix = def
+                           &= help "Specify a custom prefix for the tagged keys"
+                           &= groupname customTags &= explicit &= name "prefix"
+                           &= typ "\"<<<\""
+                , suffix = def
+                           &= help "Specify a custom suffix for the tagged keys"
+                           &= groupname customTags &= explicit &= name "suffix"
+                           &= typ "\">>>\""
                 } &= summary versionString &= details detailsHeader &= program "newt"
 
 customTags :: String
@@ -47,7 +64,8 @@ versionString = "newt " ++ showVersion version
 
 detailsHeader :: [String]
 detailsHeader = [ "For example:"
-                , "  $ newt --source=in.cabal --dest=FooApp.cabal name=FooApp author=\"Rogan Creswick\" authoremail=creswick@someemail.com"
+                , "  $ newt --source=in.cabal --dest=FooApp.cabal name=FooApp"++
+                  " author=\"Rogan Creswick\" authoremail=creswick@someemail.com"
                 , ""
                 ]
 main :: IO ()
