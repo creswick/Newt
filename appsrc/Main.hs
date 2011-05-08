@@ -45,7 +45,9 @@ config = Config { source   = def &= name "s"
                 , inplace  = def
                            &= help ("Populate the source template in-place,"++
                                     " making destructive changes. This is"++
-                                    " mutually exclusive with output to stdout.")
+                                    " mutually exclusive with output to stdout."++
+                                    " inplace is not yet supported with directory "++
+                                    " template sources.")
                 , prefix = def
                            &= help "Specify a custom prefix for the tagged keys"
                            &= groupname customTags &= explicit &= name "prefix"
