@@ -24,7 +24,7 @@ cleanup files operation = do
           rmIfExists file = catch (removeFile file) (fileFailedHandler file)
 
           fileFailedHandler :: FilePath -> IOException -> IO ()
-          fileFailedHandler file e = catch (removeDirectory file) dirFailedHandler
+          fileFailedHandler file _e = catch (removeDirectory file) dirFailedHandler
 
           dirFailedHandler :: IOException -> IO ()
-          dirFailedHandler e = return ()
+          dirFailedHandler _e = return ()

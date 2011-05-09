@@ -84,7 +84,7 @@ main = do conf <- do args <- getArgs
                        [] -> withArgs ["--help"] $ cmdArgs config
                        _  -> cmdArgs config
 
-          simpleTag <- mkSimpleTag $ tagBrackets conf
+          let simpleTag                = mkSimpleTag $ tagBrackets conf
           let table                    = mapMaybe strToPair $ rawTable conf
               replace                  = replaceTable table
               replacement input output = replaceFile simpleTag replace input output
