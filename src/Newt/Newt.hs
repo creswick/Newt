@@ -186,8 +186,9 @@ populate t subst s = go s ""
               in before . showString substitution . go atTagEnd
 
 -- | Retrieve the set of @key@s found in a given string.
+-- empty strings are not valid.
 getTags :: Tag a => a -> String -> Set String
-getTags tag = go Set.empty
+getTags tag str = Set.filter (/="") $ go Set.empty str
     where
       go found s =
           case findNextTag tag s of
