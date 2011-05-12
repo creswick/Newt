@@ -2,7 +2,16 @@ module Newt.Inputs where
 
 import System.Directory ( doesDirectoryExist, doesFileExist )
 
+import Control.Exception   ( catch, IOException )
 import Control.Monad.Error ( ErrorT, throwError, liftIO )
+import Data.Text.Encoding  ( decodeUtf8' )
+import Data.Text           ( unpack )
+
+import Prelude hiding (catch)
+
+-- should be lazy?
+import qualified Data.ByteString.Char8 as C8
+import Data.ByteString ( ByteString )
 
 data InputSpec = StandardIn
                | TxtFile FilePath
@@ -18,3 +27,9 @@ inputSpec (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist pth
                             False -> case fileExists of
                                        True  -> return (TxtFile pth)
                                        False -> throwError (pth++" Does not exist!")
+
+isText :: FilePath -> IO Bool
+isText path = do content <- C8.readFile path
+                 return $ case decodeUtf8' content of
+                            Left  _ -> False
+                            Right _ -> True
