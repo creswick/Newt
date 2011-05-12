@@ -2,12 +2,15 @@
 module Main where
 
 import Control.Monad.Error (runErrorT, liftIO)
-import Data.List  ( elemIndex )
+import Data.List  ( elemIndex, partition )
 import Data.Maybe ( mapMaybe, fromMaybe )
 import Data.Version ( showVersion )
 import qualified Data.Set as Set
 
+
+import Safe ( headMay, tailMay )
 import System.Console.CmdArgs.Implicit
+import System.Console.CmdArgs.Verbosity ( whenLoud )
 import System.Environment ( getArgs, withArgs )
 import System.Exit ( exitWith, ExitCode(..) )
 import System.IO ( hGetContents, stdin )
@@ -56,7 +59,7 @@ config = Config { source   = def &= name "s"
                            &= help "Specify a custom suffix for the tagged keys"
                            &= groupname customTags &= explicit &= name "suffix"
                            &= typ "\">>>\""
-                } &= summary versionString &= details detailsHeader &= program "newt"
+                } &= summary versionString &= details detailsHeader &= program "newt" &= verbosity
 
 customTags :: String
 customTags = "\nCustomizing tag syntax"
@@ -77,17 +80,52 @@ detailsHeader = [ "For example:"
                 , "  List the tagged keys in in.cabal, using cat and stdin:"
                 , "  $ cat in.cabal | newt --list"
                 ]
-main :: IO ()
-main = do conf <- do args <- getArgs
-                     -- if no arguments were specified, print help and exit:
-                     case args of
-                       [] -> withArgs ["--help"] $ cmdArgs config
-                       _  -> cmdArgs config
 
-          let simpleTag                = mkSimpleTag $ tagBrackets conf
-          let table                    = mapMaybe strToPair $ rawTable conf
+-- | Relax the arguments a bit so -s --sourc / etc aren't strictly
+-- necessary.
+--
+--  If --source is not specified, use the first non-value assignment
+--  in args
+--
+--  if --dest is also not specified, use the first non-value
+--  assignment in args for dest.
+--
+--  if neither --source or --dest is specified, use the first
+--  non-value assignment for --source and the second for --dest.
+relaxArgs :: Config -> Config
+relaxArgs conf = let (newSrc, newDest, newTable) = findAltSourceDest (source conf) (dest conf) (partition isValueArg $ rawTable conf)
+                 in conf { source = newSrc
+                         , dest = newDest
+                         , rawTable = newTable
+                         }
+
+isValueArg :: String -> Bool
+isValueArg str = '=' `elem` str
+
+findAltSourceDest :: Maybe FilePath -> Maybe FilePath -> ([String], [String]) -> (Maybe FilePath, Maybe FilePath, [String])
+findAltSourceDest mbSrc mbDest (valueArgs, nonValueArgs) =
+    case (mbSrc, mbDest) of
+      (Nothing, Nothing) -> ( headMay nonValueArgs
+                            , tailMay nonValueArgs >>= headMay
+                            , valueArgs)
+      (Just s,  Nothing) -> (Just s, headMay nonValueArgs, nonValueArgs)
+      (Nothing, Just d ) -> (headMay nonValueArgs, Just d, nonValueArgs)
+      (Just s,  Just d ) -> (Just s, Just d, nonValueArgs)
+
+main :: IO ()
+main = do rawConf <- do args <- getArgs
+                        -- if no arguments were specified, print help and exit:
+                        case args of
+                          [] -> withArgs ["--help"] $ cmdArgs config
+                          _  -> cmdArgs config
+
+          let conf                     = relaxArgs rawConf
+              simpleTag                = mkSimpleTag $ tagBrackets conf
+              table                    = mapMaybe strToPair $ rawTable conf
               replace                  = replaceTable table
               replacement input output = replaceFile simpleTag replace input output
+
+          whenLoud $ putStrLn ("Using configuration: "++show conf)
 
           res <- runErrorT $ do
                    inSpec <- inputSpec $ source conf

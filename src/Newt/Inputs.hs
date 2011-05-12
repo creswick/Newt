@@ -7,8 +7,6 @@ import Control.Monad.Error ( ErrorT, throwError, liftIO )
 data InputSpec = StandardIn
                | TxtFile FilePath
                | Directory FilePath
-                 -- | TarGz FilePath
-                 -- | Zip FilePath
                  deriving (Show)
 
 inputSpec :: Maybe FilePath -> ErrorT String IO InputSpec

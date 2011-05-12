@@ -69,7 +69,8 @@ Executable newt
    Build-depends:    newt,
                      base       >= 4       && < 6,
                      mtl        >= 2.0.1.0 && < 2.0.2,
-                     cmdargs    >= 0.6.9   && < 0.6.10
+                     cmdargs    >= 0.6.9   && < 0.6.10,
+                     safe       >= 0.3     && < 0.4
 
    if impl(ghc < 7)
      Build-depends:
