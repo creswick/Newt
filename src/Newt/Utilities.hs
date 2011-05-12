@@ -2,6 +2,7 @@ module Newt.Utilities
     ( copyDirectory
     , cleanup
     , trim
+    , isValueArg
     ) where
 
 import Prelude hiding    ( catch )
@@ -10,6 +11,10 @@ import Control.Exception ( IOException, catch, finally )
 import Data.Char (isSpace)
 import System.Directory ( removeFile, removeDirectory )
 import System.Process ( rawSystem )
+
+
+isValueArg :: String -> Bool
+isValueArg str = '=' `elem` str
 
 
 -- | Currently using rawSystem

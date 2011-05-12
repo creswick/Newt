@@ -13,7 +13,7 @@ import Test.Framework ( testGroup, Test )
 
 import Newt.Newt ( populate, Replace, Table, replaceTable, Tag
                  , defaultPrefix, defaultSuffix, mkSimpleTag
-                 , getTags)
+                 , getTags )
 
 tests :: IO [Test]
 tests = do let defaultTag = mkSimpleTag (defaultPrefix, defaultSuffix)

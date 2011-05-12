@@ -13,6 +13,7 @@ import System.Console.CmdArgs.Verbosity ( whenLoud, Verbosity(..), getVerbosity 
 import Safe ( headMay, tailMay )
 import System.Environment ( getArgs, withArgs )
 
+import Newt.Utilities ( isValueArg )
 
 getConfig :: Version -> IO Config
 getConfig version = do rawConf <- do args <- getArgs
@@ -101,9 +102,6 @@ relaxArgs conf = let (newSrc, newDest, newTable) = findAltSourceDest (source con
                          , dest = newDest
                          , rawTable = newTable
                          }
-
-isValueArg :: String -> Bool
-isValueArg str = '=' `elem` str
 
 findAltSourceDest :: Maybe FilePath -> Maybe FilePath -> ([String], [String]) -> (Maybe FilePath, Maybe FilePath, [String])
 findAltSourceDest mbSrc mbDest (valueArgs, nonValueArgs) =

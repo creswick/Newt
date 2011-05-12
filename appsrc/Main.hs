@@ -52,12 +52,8 @@ printTags tag (In.Directory pth) = do tagSet <- getTagsDirectory tag pth
                                       mapM_ putStrLn $ Set.toList tagSet
 printTags _ fmt = putStrLn ("Unsupported input format: " ++ show fmt)
 
-
 printHelp :: IO ()
 printHelp = putStrLn "Usage: newt <inFile> [<outFile> [key=value]]"
-
-isPair :: String -> Bool
-isPair str = '=' `elem` str
 
 strToPair :: String -> Maybe (String, String)
 strToPair str = do idx <- elemIndex '=' str
