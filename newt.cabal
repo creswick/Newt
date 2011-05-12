@@ -37,15 +37,18 @@ Library
    Exposed-modules:  Newt.Newt,
                      Newt.Inputs,
                      Newt.Outputs,
-                     Newt.Utilities
+                     Newt.Utilities,
+                     Newt.CmdParsing
 
    Build-depends:    base       >= 4       && < 6,
                      filemanip  >= 0.3.5.2 && < 0.3.6,
                      mtl        >= 2.0.1.0 && < 2.0.2,
-                     regex-base >= 0.93.2  && < 0.94,
-                     regex-pcre >= 0.94.2  && < 0.95,
+--                     regex-base >= 0.93.2  && < 0.94,
+--                     regex-pcre >= 0.94.2  && < 0.95,
                      array      >= 0.3.0.0 && < 0.4.1,
-                     Unixutils  >= 1.36    && < 1.37
+                     Unixutils  >= 1.36    && < 1.37,
+                     safe       >= 0.3     && < 0.4,
+                     cmdargs    >= 0.6.9   && < 0.6.10
    if impl(ghc < 7)
      Build-depends:
                      containers >= 0.3.0.0 && < 0.5,
@@ -69,8 +72,7 @@ Executable newt
    Build-depends:    newt,
                      base       >= 4       && < 6,
                      mtl        >= 2.0.1.0 && < 2.0.2,
-                     cmdargs    >= 0.6.9   && < 0.6.10,
-                     safe       >= 0.3     && < 0.4
+                     cmdargs    >= 0.6.9   && < 0.6.10
 
    if impl(ghc < 7)
      Build-depends:

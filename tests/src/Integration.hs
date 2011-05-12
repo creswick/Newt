@@ -18,10 +18,20 @@ import Test.HUnit      ( (@=?), assertEqual, Assertion )
 import Test.Framework.Providers.HUnit
 import Test.Framework ( testGroup, Test )
 
+import Data.Version ( showVersion, Version )
+import System.Process ( readProcess )
+
 import Newt.Utilities
+import Newt.CmdParsing ( versionString )
+
+import Paths_newt ( version )
 
 tests :: [Test]
-tests = [ testGroup "Simple File tests" [
+tests = [ testGroup "sanity tests" [
+                         testCase "Check the invoked version of Newt against the cabal file"
+                                  verifyVersion
+                        ]
+        , testGroup "Simple File tests" [
                           testCase "Simple replacement test 1" $
                                    test_simpleReplace "The Author" "in.cabal.oracle.1"
                         , testCase "Simple replacement test 2" $
@@ -38,6 +48,11 @@ tests = [ testGroup "Simple File tests" [
                                    test_inplaceReplace "TheAuthor" "in.cabal.oracle.2"
                         ]
         ]
+
+-- | Make sure we're actually invoking the version of newt that was just built.
+verifyVersion :: Assertion
+verifyVersion = do res <- readProcess newtCmd ["--version"] ""
+                   assertEqual "Invoking the wrong version of newt" (trim $ versionString version) (trim res)
 
 projectTable :: [(String, String)]
 projectTable = [ ("projName", "testProj")]
@@ -60,7 +75,7 @@ test_inplaceReplace author oracleFile = do tmpFile <- getTmpFileName
                                            cleanup [tmpFile] $ do
                                              -- don't modify the original test input file:
                                              copyFile input tmpFile
-                                             runNewt ([source] ++ params)
+                                             _ <- runNewt ([source] ++ params)
                                              -- check file content:
                                              assertFilesEqual "Generated file doesn't match" oracle tmpFile
 
@@ -72,7 +87,7 @@ test_simpleReplace author oracleFile = do tmpFile <- getTmpFileName
                                               table = [ "name=myProject"
                                                       , "author=" ++ author ]
                                           cleanup [tmpFile] $ do
-                                            runNewt (table ++ [source, dest])
+                                            _ <- runNewt (table ++ [source, dest])
                                             -- check file content:
                                             assertFilesEqual "Generated file doesn't match" oracle tmpFile
 
@@ -107,5 +122,5 @@ test_dirReplace :: [(String, String)] -> FilePath -> FilePath -> Assertion
 test_dirReplace table inDir oracle = withTemporaryDirectory "newt-XXXXXX" $ \dir -> do
                                        let outDir = dir </> oracle
                                            params = map (\(k,v)->k++"="++v) table
-                                       runNewt (params ++ ["--source="++inDir, "--dest="++outDir])
+                                       _ <- runNewt (params ++ ["--source="++inDir, "--dest="++outDir])
                                        assertDirsEqual "Directory replacement failed." oracle outDir

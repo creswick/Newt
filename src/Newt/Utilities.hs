@@ -1,12 +1,16 @@
 module Newt.Utilities
     ( copyDirectory
     , cleanup
+    , trim
     ) where
 
 import Prelude hiding    ( catch )
 import Control.Exception ( IOException, catch, finally )
+
+import Data.Char (isSpace)
 import System.Directory ( removeFile, removeDirectory )
 import System.Process ( rawSystem )
+
 
 -- | Currently using rawSystem
 --
@@ -28,3 +32,9 @@ cleanup files operation = do
 
           dirFailedHandler :: IOException -> IO ()
           dirFailedHandler _e = return ()
+
+
+-- | remove leading / trailing whitespace.
+trim :: String -> String
+trim = reverse . dropSpaces . reverse . dropSpaces
+    where dropSpaces = dropWhile isSpace
