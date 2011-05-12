@@ -100,7 +100,8 @@ Executable test-newt
                      test-framework-hunit       >= 0.2.6   && < 0.3,
                      QuickCheck                 >= 2.4.1.1 && < 2.4.2,
                      uuid                       >= 1.2.2   && < 1.2.3,
-                     Unixutils  >= 1.36    && < 1.37
+                     Unixutils  >= 1.36    && < 1.37,
+                     safe       >= 0.3     && < 0.4
 
    if impl(ghc < 7)
      Build-depends:

@@ -2,8 +2,11 @@ module ReplaceTests where
 
 import qualified Data.Set as Set
 
+import Safe
+
 import Test.HUnit      ( (@=?) )
-import Test.QuickCheck ( Property )
+import Test.QuickCheck ( Property, (==>) )
+import Test.QuickCheck.Property ()
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit
 import Test.Framework ( testGroup, Test )
@@ -59,12 +62,13 @@ tests = do let defaultTag = mkSimpleTag (defaultPrefix, defaultSuffix)
 
 -- | Generate random strings, slap a key between them, and see if newt
 -- can do the replacement:
-prop_populateKeyInRandStr :: Tag a => a -> String -> String -> Table -> String -> String -> Bool
-prop_populateKeyInRandStr tag tPrefix tSuffix table pfx sfx =
+prop_populateKeyInRandStr :: Tag a => a -> String -> String -> Table -> String -> Char -> String -> Char -> Property
+prop_populateKeyInRandStr tag tPrefix tSuffix table pfx pCh sfx sCh = (Just pCh) /= headMay tPrefix &&
+                                                                      (Just sCh) /= lastMay tSuffix ==>
     let key   = (fst . head) table
         value = (snd . head) table
-        input = pfx ++ tPrefix ++ key ++ tSuffix ++ sfx
-        oracle = pfx ++ value ++ sfx
+        input = pfx ++ [pCh] ++ tPrefix ++ key ++ tSuffix ++ [sCh] ++ sfx
+        oracle = pfx ++ [pCh] ++ value ++ [sCh] ++ sfx
     in populate tag (replaceTable table) input == oracle
 
 prop_getTags :: Tag a => a -> String -> String -> [(String, String)] -> String -> Bool
