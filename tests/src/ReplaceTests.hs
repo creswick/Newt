@@ -71,10 +71,16 @@ prop_populateKeyInRandStr tag tPrefix tSuffix table pfx pCh sfx sCh = (Just pCh)
         oracle = pfx ++ [pCh] ++ value ++ [sCh] ++ sfx
     in populate tag (replaceTable table) input == oracle
 
-prop_getTags :: Tag a => a -> String -> String -> [(String, String)] -> String -> Bool
-prop_getTags tag tPrefix tSuffix keys end =
-    let input  = foldr (\(filler, key) front -> front ++ filler ++ tPrefix ++ key ++ tSuffix) end keys
-        oracle = Set.fromList $ map snd keys
+emptyKorV :: (String, String) -> Bool
+emptyKorV ("", _ ) = True
+emptyKorV (_ , "") = True
+emptyKorV (_ , _ ) = False
+
+prop_getTags :: Tag a => a -> String -> String -> [(String, String)] -> String -> Property
+prop_getTags tag tPrefix tSuffix keys end = filter (not . emptyKorV) keys /= [] ==>
+    let filteredTable = filter (not . emptyKorV) keys
+        input  = foldr (\(filler, key) front -> front ++ filler ++ tPrefix ++ key ++ tSuffix) end filteredTable
+        oracle = Set.fromList $ map snd filteredTable
     in getTags tag input == oracle
 
 replacements :: Table
