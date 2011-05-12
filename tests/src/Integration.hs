@@ -8,6 +8,7 @@ import System.Process   ( rawSystem )
 import System.Exit      ( ExitCode(..) )
 import Data.UUID.V1 ( nextUUID )
 import Data.UUID
+import System.Unix.Directory ( withTemporaryDirectory )
 
 import Prelude hiding (catch)
 
@@ -26,6 +27,10 @@ tests = [ testGroup "Simple File tests" [
                         , testCase "Simple replacement test 2" $
                                    test_simpleReplace "TheAuthor" "in.cabal.oracle.2"
                         ]
+        , testGroup "Simple directory tests" [
+                          testCase "Cabal project generation" $
+                                   test_dirReplace projectTable "cabalProject" "cabalProjectOracle"
+                        ]
         , testGroup "Inplace modification tests" [
                           testCase "Inplace replacement test 1" $
                                    test_inplaceReplace "The Author" "in.cabal.oracle.1"
@@ -33,6 +38,9 @@ tests = [ testGroup "Simple File tests" [
                                    test_inplaceReplace "TheAuthor" "in.cabal.oracle.2"
                         ]
         ]
+
+projectTable :: [(String, String)]
+projectTable = [ ("projName", "testProj")]
 
 testDir :: FilePath
 testDir = "tests" </> "testFiles"
@@ -52,21 +60,19 @@ test_inplaceReplace author oracleFile = do tmpFile <- getTmpFileName
                                            cleanup [tmpFile] $ do
                                              -- don't modify the original test input file:
                                              copyFile input tmpFile
-                                             exitCode <- rawSystem newtCmd ([source] ++ params)
-                                             assertEqual "invocation of newt failed" ExitSuccess exitCode
+                                             runNewt ([source] ++ params)
                                              -- check file content:
                                              assertFilesEqual "Generated file doesn't match" oracle tmpFile
 
 test_simpleReplace :: String -> String -> Assertion
 test_simpleReplace author oracleFile = do tmpFile <- getTmpFileName
-                                          let source= "--source=" ++ (testDir </> "simpleTest" </> "in.cabal")
+                                          let source= "--source="++(testDir </> "simpleTest" </> "in.cabal")
                                               dest  = "--dest="++tmpFile
                                               oracle = (testDir </> "simpleTest" </> oracleFile)
-                                              params = [ "name=myProject"
-                                                       , "author="++author]
+                                              table = [ "name=myProject"
+                                                      , "author=" ++ author ]
                                           cleanup [tmpFile] $ do
-                                            exitCode <- rawSystem newtCmd ([source, dest] ++ params)
-                                            assertEqual "invocation of newt failed" ExitSuccess exitCode
+                                            runNewt (table ++ [source, dest])
                                             -- check file content:
                                             assertFilesEqual "Generated file doesn't match" oracle tmpFile
 
@@ -74,6 +80,12 @@ assertFilesEqual :: String -> FilePath -> FilePath -> Assertion
 assertFilesEqual msg oracle suspect = do oracleTxt <- readFile oracle
                                          suspectTxt <- readFile suspect
                                          assertEqual msg oracleTxt suspectTxt
+
+-- assertFilePathEqual :: String -> FilePath -> FilePath
+-- assertFilePathEqual msg oracle suspect = 
+
+assertDirsEqual :: String -> FilePath -> FilePath -> Assertion
+assertDirsEqual msg oracle suspect = assertEqual msg False True
 
 -- | Generates a filename with a uuid in either the system temp
 -- directory or the current directory (if the system temp dir can't be
@@ -86,34 +98,14 @@ getTmpFileName = do tempdir <- catch (getTemporaryDirectory) errHandler
     where errHandler :: IOException -> IO FilePath
           errHandler _ = return "."
 
--- {- This function takes two parameters: a filename pattern and another
---    function.  It will create a temporary file, and pass the name and Handle
---    of that file to the given function.
+runNewt :: [String] -> IO ExitCode
+runNewt params = do exitCode <- rawSystem newtCmd params
+                    assertEqual "invocation of newt failed" ExitSuccess exitCode
+                    return exitCode
 
---    The temporary file is created with openTempFile.  The directory is the one
---    indicated by getTemporaryDirectory, or, if the system has no notion of
---    a temporary directory, "." is used.  The given pattern is passed to
---    openTempFile.
-
---    After the given function terminates, even if it terminates due to an
---    exception, the Handle is closed and the file is deleted. -}
--- withTempFile :: String -> (FilePath -> Handle -> IO a) -> IO a
--- withTempFile pattern func =
---     do -- The library ref says that getTemporaryDirectory may raise on
---        -- exception on systems that have no notion of a temporary directory.
---        -- So, we run getTemporaryDirectory under catch.  catch takes
---        -- two functions: one to run, and a different one to run if the
---        -- first raised an exception.  If getTemporaryDirectory raised an
---        -- exception, just use "." (the current working directory).
---        tempdir <- catch (getTemporaryDirectory) (\_ -> return ".")
---        (tempfile, temph) <- openTempFile tempdir pattern
-
---        -- Call (func tempfile temph) to perform the action on the temporary
---        -- file.  finally takes two actions.  The first is the action to run.
---        -- The second is an action to run after the first, regardless of
---        -- whether the first action raised an exception.  This way, we ensure
---        -- the temporary file is always deleted.  The return value from finally
---        -- is the first action's return value.
---        finally (func tempfile temph) 
---                (do hClose temph
---                    removeFile tempfile)
+test_dirReplace :: [(String, String)] -> FilePath -> FilePath -> Assertion
+test_dirReplace table inDir oracle = withTemporaryDirectory "newt-XXXXXX" $ \dir -> do
+                                       let outDir = dir </> oracle
+                                           params = map (\(k,v)->k++"="++v) table
+                                       runNewt (params ++ ["--source="++inDir, "--dest="++outDir])
+                                       assertDirsEqual "Directory replacement failed." oracle outDir
