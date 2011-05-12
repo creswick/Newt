@@ -114,7 +114,8 @@ getTmpFileName = do tempdir <- catch (getTemporaryDirectory) errHandler
           errHandler _ = return "."
 
 runNewt :: [String] -> IO ExitCode
-runNewt params = do exitCode <- rawSystem newtCmd params
+runNewt params = do -- putStrLn ("Invoking newt: "++show params)
+                    exitCode <- rawSystem newtCmd params
                     assertEqual "invocation of newt failed" ExitSuccess exitCode
                     return exitCode
 

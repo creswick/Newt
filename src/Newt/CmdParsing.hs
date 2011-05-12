@@ -111,9 +111,9 @@ findAltSourceDest mbSrc mbDest (valueArgs, nonValueArgs) =
       (Nothing, Nothing) -> ( headMay nonValueArgs
                             , tailMay nonValueArgs >>= headMay
                             , valueArgs)
-      (Just s,  Nothing) -> (Just s, headMay nonValueArgs, nonValueArgs)
-      (Nothing, Just d ) -> (headMay nonValueArgs, Just d, nonValueArgs)
-      (Just s,  Just d ) -> (Just s, Just d, nonValueArgs)
+      (Just s,  Nothing) -> (Just s, headMay nonValueArgs, valueArgs)
+      (Nothing, Just d ) -> (headMay nonValueArgs, Just d, valueArgs)
+      (Just s,  Just d ) -> (Just s, Just d, valueArgs)
 
 debug :: Config -> String -> IO ()
 debug conf msg = case verb conf of
