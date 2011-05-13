@@ -11,21 +11,24 @@ Cabal-Version:       >=1.8.0.6
 build-type:          Simple
 
 Extra-source-files:
-                     tests/src/Integration.hs
-                     tests/src/Main.hs
-                     tests/src/ReplaceTests.hs
-                     tests/testFiles/dirTemplates/cabalProject/<<<projName>>>.cabal
-                     tests/testFiles/dirTemplates/cabalProject/LICENSE
-                     tests/testFiles/dirTemplates/cabalProject/Setup.hs
-                     tests/testFiles/dirTemplates/cabalProject/appsrc/Main.hs
-                     tests/testFiles/dirTemplates/cabalProject/src/<<<projName>>>.hs
-                     tests/testFiles/dirTemplates/cabalProject/tests/src/Main.hs
+                     tests/testFiles/dirTemplates/templateWithImages/<<<name>>>.txt
+                     tests/testFiles/dirTemplates/templateWithImages/<<<name>>>.png
                      tests/testFiles/dirTemplates/template2/<<<projName>>>/in.cabal
-                     tests/testFiles/simpleTest/alternate1.txt
-                     tests/testFiles/simpleTest/in.cabal
+                     tests/testFiles/dirTemplates/template3/<<<projName>>>/.gitignore
+                     tests/testFiles/dirTemplates/template3/<<<projName>>>/<<<projName2>>>/.gitignore
+                     tests/testFiles/dirTemplates/cabalProject/LICENSE
+                     tests/testFiles/dirTemplates/cabalProject/tests/src/Main.hs
+                     tests/testFiles/dirTemplates/cabalProject/src/<<<projName>>>.hs
+                     tests/testFiles/dirTemplates/cabalProject/Setup.hs
+                     tests/testFiles/dirTemplates/cabalProject/<<<projName>>>.cabal
+                     tests/testFiles/dirTemplates/cabalProject/appsrc/Main.hs
+                     tests/testFiles/dirTemplates/template1/<<<projName>>>/.gitignore
                      tests/testFiles/simpleTest/in.cabal.oracle.1
                      tests/testFiles/simpleTest/in.cabal.oracle.2
+                     tests/testFiles/simpleTest/alternate1.txt
+                     tests/testFiles/simpleTest/in.cabal
                      tests/testFiles/simpleTest/simple1.txt
+                     tests/testFiles/sampleImage.png
 
 Flag tests
    Description:    Build the tests
