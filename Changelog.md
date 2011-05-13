@@ -1,7 +1,7 @@
 # Changelog
 
 
-## 0.0.3.0 - Feature Release (May 12, 2011)
+## 0.0.3.1 - Feature Release (May 12, 2011)
 
  * BugFix: Fixed incomplete pattern matches due to the addition of the In.BinFile data constructor.
 
