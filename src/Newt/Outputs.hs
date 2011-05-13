@@ -12,7 +12,8 @@ import Control.Monad.Error ( ErrorT, throwError, liftIO )
 import qualified Newt.Inputs as In
 
 data OutputSpec = StandardOut
-                | TxtFile FilePath
+                | File FilePath -- ^ output doesn't distinguish between
+                                -- binary and text files.
                 | Directory FilePath
                 deriving (Show)
 
@@ -24,21 +25,21 @@ outputSpec False input (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist
                                        fileExists <- liftIO $ doesFileExist pth
                                        when (dirExists || fileExists) (throwError (pth++" exists!"))
                                        case input of
-                                         In.StandardIn  -> return $ TxtFile pth
-                                         In.TxtFile   _ -> return $ TxtFile pth
+                                         In.StandardIn  -> return $ File pth
+                                         In.TxtFile   _ -> return $ File pth
                                          In.Directory _ -> return $ Directory pth
 
 -- | Convert an inputspec into an output spec that represents the same
 -- source.  used for inplace modifications.
 fromInputSpec :: In.InputSpec -> ErrorT String IO OutputSpec
-fromInputSpec (In.TxtFile file)  = return $ TxtFile file
+fromInputSpec (In.TxtFile file)  = return $ File file
 fromInputSpec (In.Directory dir) = return $ Directory dir
 fromInputSpec In.StandardIn      = throwError "Can not modife stdin inplace."
 
 writeTo :: OutputSpec -> String -> IO ()
-writeTo (TxtFile outFile) str = withTemporaryDirectory "newt-XXXXXX" $ \dir -> do
-                                  let tempOut = dir </> "tempOut"
-                                  writeFile tempOut str
-                                  copyFile  tempOut outFile
-writeTo StandardOut       str = putStr str
-writeTo outSpec             _ = error ("Could not write to outspec: "++show outSpec)
+writeTo (File outFile) str = withTemporaryDirectory "newt-XXXXXX" $ \dir -> do
+                               let tempOut = dir </> "tempOut"
+                               writeFile tempOut str
+                               copyFile  tempOut outFile
+writeTo StandardOut    str = putStr str
+writeTo outSpec          _ = error ("Could not write to outspec: "++show outSpec)

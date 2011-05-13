@@ -8,7 +8,7 @@ import Data.Set   ( Set )
 import qualified Data.Set as Set
 
 import System.Directory ( doesDirectoryExist, getDirectoryContents
-                        , createDirectoryIfMissing )
+                        , createDirectoryIfMissing, copyFile )
 import System.Exit           ( exitWith, ExitCode(..) )
 import System.FilePath       ( (</>) )
 import System.FilePath.Find  ( findWithHandler, always )
@@ -79,14 +79,6 @@ getTagsFile :: Tag a => a -> FilePath -> IO (Set String)
 getTagsFile tag file = do content <- readFile file
                           return $ getTags tag content
 
--- filesIn :: FilePath -> IO [FilePath]
--- filesIn dir = findWithHandler onErr always always dir
---  where onErr :: FilePath -> IOException -> IO [FilePath]
---        onErr file e = do
---          putStrLn ("Error folding over files on: "++file++"\n error:"++show e)
---          return [file]
-
-
 -- | Collect the key names for every tag in the contents of the
 -- specified directory.  This does currently return tags in the
 -- directory name itself.  That could be confusing, but I think it's a
@@ -107,7 +99,12 @@ getTagsDirectory tag dir = do fileList <- findWithHandler onFileIOErr always alw
        contentTags file = do dirExists <- doesDirectoryExist file
                              case dirExists of
                                True  -> return $ Set.empty -- the recursive case is covered by findWithHandler.
-                               False -> getTagsFile tag file
+                               False -> do isT <- liftIO $ isText file
+                                           case isT of
+                                             True  -> getTagsFile tag file
+                                             False -> return $ Set.empty
+
+
 
 onFileIOErr :: FilePath -> IOException -> IO [FilePath]
 onFileIOErr file e = do
@@ -133,6 +130,10 @@ replaceTable t = \k -> lookup k t
 --
 -- XXX: return value should probably be @ErrorT String IO ()@
 replaceFile :: Tag a => a -> Replace -> InputSpec -> OutputSpec -> IO ()
+replaceFile   _       _ (BinFile binFile)   outSpec = case outSpec of
+                                                        StandardOut     -> putStrLn ("Not copying bin file to stdout: "++binFile)
+                                                        File   file     -> copyFile binFile file
+                                                        Out.Directory _ -> putStrLn ("Inconsistent in/output formats: BinFile -> Dir: " ++ binFile)
 replaceFile tag replace StandardIn          outSpec = do content <- hGetContents stdin
                                                          let result = populate tag replace content
                                                          writeTo outSpec result
@@ -161,9 +162,6 @@ replaceFile tag replace (In.Directory inDir) (Out.Directory outDir) = do
     Left err -> do putStrLn err
                    exitWith (ExitFailure 1)
     Right _  -> return ()
-
-
-
 replaceFile _ _ _ _ = putStrLn "Unsupported input/output pairing"
 
 findNextTag :: Tag a => a -> String -> Maybe (ShowS, String, String)

@@ -13,7 +13,9 @@ import Test.Framework ( testGroup, Test )
 
 import Newt.Newt ( populate, Replace, Table, replaceTable, Tag
                  , defaultPrefix, defaultSuffix, mkSimpleTag
-                 , getTags )
+                 , getTags, getTagsDirectory )
+
+import TestUtilities
 
 tests :: IO [Test]
 tests = do let defaultTag = mkSimpleTag (defaultPrefix, defaultSuffix)
@@ -51,12 +53,18 @@ tests = do let defaultTag = mkSimpleTag (defaultPrefix, defaultSuffix)
                                            , ("Multi-tag 2", "<<<k>>> <<<key>>>", ["k", "key"])
                                            , ("Multi-tag 3", "<<<k>>><<<key>>> <<<k>>>", ["k", "key"])
                                            ]
-                                         , [ testProperty "random content, default tag" $
-                                                          prop_getTags defaultTag defaultPrefix defaultSuffix
-                                           , testProperty "random content, dash tag" $
-                                                          prop_getTags dashTag "---" "---"
-                                           ]
+                                         -- , [ testProperty "random content, default tag" $
+                                         --                  prop_getTags defaultTag defaultPrefix defaultSuffix
+                                         --   , testProperty "random content, dash tag" $
+                                         --                  prop_getTags dashTag "---" "---"
+                                         --   ]
                                          ]
+                     , testGroup "getTagsDirectory" $ map (testGetTagsDirectory defaultTag) [
+                                       ("Cabal Project", "tests/testFiles/dirTemplates/cabalProject",
+                                        ["author", "authoremail", "description", "projName", "synopsis", "year"])
+                                     , ("Sample Image Proj", "tests/testFiles/dirTemplates/templateWithImages",
+                                        ["name", "inner"])
+                                     ]
                       ]
 
 
@@ -91,11 +99,15 @@ replacements = [ ( "k", "v")
                ]
 
 testPopulate :: Tag a => a -> Replace -> (String, String, String) -> Test
-testPopulate tag fn (descr, input, oracle) =
-    testCase (descr++" input: "++show input) assert
-        where assert = oracle @=? populate tag fn input
+testPopulate tag fn = genTest (populate tag fn)
 
 testGetTags :: Tag a => a -> (String, String, [String]) -> Test
 testGetTags tag (descr, input, oracle) =
     testCase (descr++" input: "++show input) assert
         where assert = Set.fromList oracle @=? getTags tag input
+
+testGetTagsDirectory :: Tag a => a -> (String, String, [String]) -> Test
+testGetTagsDirectory tag (descr, input, oracle) =
+    testCase (descr++" input: "++show input) assert
+        where assert = do tags <- getTagsDirectory tag input
+                          Set.fromList oracle @=? tags

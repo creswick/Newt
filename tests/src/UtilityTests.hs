@@ -7,6 +7,8 @@ import Test.Framework ( testGroup, Test )
 import Newt.Utilities
 import Newt.Inputs
 
+import TestUtilities
+
 tests :: [Test]
 tests = [testGroup "trim tests" $ map (genTest trim) [
                          ("Empty string",      "",  "")
@@ -24,13 +26,3 @@ tests = [testGroup "trim tests" $ map (genTest trim) [
                         , ("image", "tests/testFiles/sampleImage.png", False)
                         ]
         ]
-
-genTest :: (Show a, Show b, Eq b) => (a -> b) -> (String, a, b) -> Test
-genTest fn (descr, input, oracle) =
-    testCase (descr++" input: "++show input) assert
-        where assert = oracle @=? fn input
-
-genTestIO :: (Show a, Show b, Eq b) => (a -> IO b) -> (String, a, b) -> Test
-genTestIO fn (descr, input, oracle) = testCase (descr++" input: " ++show input) $ do
-                                        res <- fn input
-                                        oracle @=? res
