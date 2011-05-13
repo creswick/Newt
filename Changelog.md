@@ -4,7 +4,7 @@
 
  * Made the command line interface more intuitive, per the following algorithm:
   * If --source is not specified, the first undefined non-key=value argument is used as the source.
-   * if --dest is *also* not specified, the second undefined non-key=value argument is used as the dest.
+    * if --dest is *also* not specified, the second undefined non-key=value argument is used as the dest.
   * If --source is specified but dest is not,  the first undefined non-key=value argument is used as the dest.
   * If neither --source or --dest are specified, and there is only one  undefined non-key=value argument, then that is used as the source, and the dest is stdout.
   * If the above is true, and there are *no* undefined non-key=value arguments, then source is stdin and dest is stdout.
