@@ -28,13 +28,15 @@ outputSpec False input (Just pth) = do dirExists  <- liftIO $ doesDirectoryExist
                                          In.StandardIn  -> return $ File pth
                                          In.TxtFile   _ -> return $ File pth
                                          In.Directory _ -> return $ Directory pth
+                                         In.BinFile   _ -> return $ File pth
 
 -- | Convert an inputspec into an output spec that represents the same
 -- source.  used for inplace modifications.
 fromInputSpec :: In.InputSpec -> ErrorT String IO OutputSpec
 fromInputSpec (In.TxtFile file)  = return $ File file
+fromInputSpec (In.BinFile file)  = return $ File file
 fromInputSpec (In.Directory dir) = return $ Directory dir
-fromInputSpec In.StandardIn      = throwError "Can not modife stdin inplace."
+fromInputSpec In.StandardIn      = throwError "Can not modify stdin inplace."
 
 writeTo :: OutputSpec -> String -> IO ()
 writeTo (File outFile) str = withTemporaryDirectory "newt-XXXXXX" $ \dir -> do

@@ -1,5 +1,5 @@
 name:                newt
-version:             0.0.3.0
+version:             0.0.3.1
 synopsis:            A trivially simple app to create things from simple templates.
 description:         Instantiates text things from templates.
 category:            Tools

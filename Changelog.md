@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 0.0.3.0 - Feature Release (May 12, 2011)
+
+ * BugFix: Fixed incomplete pattern matches due to the addition of the In.BinFile data constructor.
+
 ## 0.0.3.0 - Feature Release (May 12, 2011)
 
  * Made the command line interface more intuitive, per the following algorithm:
