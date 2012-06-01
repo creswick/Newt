@@ -44,12 +44,12 @@ Library
                      Newt.CmdParsing
 
    Build-depends:    base       >= 4       && < 6,
-                     filemanip
-                     mtl
-                     array
-                     Unixutils
-                     safe 
-                     cmdargs 
+                     filemanip,
+                     mtl,
+                     array,
+                     Unixutils,
+                     safe,
+                     cmdargs,
                      bytestring,
                      text
    if impl(ghc < 7)
