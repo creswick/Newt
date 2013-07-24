@@ -7,8 +7,6 @@ import qualified UtilityTests as UtilityTests
 
 import Test.Framework ( defaultMain )
 
-
-
 main :: IO ()
 main = do replaceTests <- ReplaceTests.tests
           defaultMain $ concat [ UtilityTests.tests

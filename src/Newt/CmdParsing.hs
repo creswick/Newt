@@ -10,6 +10,7 @@ import Data.List    ( partition )
 import Data.Version ( showVersion, Version )
 import System.Console.CmdArgs.Implicit
 import System.Console.CmdArgs.Verbosity ( whenLoud, Verbosity(..), getVerbosity )
+import System.Directory ( getAppUserDataDirectory )
 import Safe ( headMay, tailMay )
 import System.Environment ( getArgs, withArgs )
 

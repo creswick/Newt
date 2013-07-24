@@ -43,7 +43,7 @@ Library
                      Newt.Utilities,
                      Newt.CmdParsing
 
-   Build-depends:    base       >= 4       && < 6,
+   Build-depends:    base       >= 4,
                      filemanip,
                      mtl,
                      array,
@@ -73,7 +73,7 @@ Executable newt
    hs-source-dirs:   appsrc
 
    Build-depends:    newt,
-                     base       >= 4       && < 6,
+                     base       >= 4,
                      mtl,
                      cmdargs
 
@@ -96,7 +96,7 @@ Executable test-newt
    Hs-Source-Dirs:   tests/src
 
    Build-depends:    newt,
-                     base       >= 4       && < 6,
+                     base,
                      HUnit,
                      test-framework,
                      test-framework-quickcheck2,
